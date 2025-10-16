@@ -1,0 +1,14 @@
+{
+  "name": "yfitops-client",
+  "version": "0.1.0",
+  "description": "Basic Electron shell for future Spotify music player integration.",
+  "main": "src/main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^29.0.0"
+  }
+}
