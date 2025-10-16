@@ -1,5 +1,13 @@
-const { app, BrowserWindow } = require('electron');
 const path = require('path');
+require('dotenv').config();
+const { app, BrowserWindow, ipcMain } = require('electron');
+const { SpotifyService } = require('./lib/spotifyService');
+
+const spotifyService = new SpotifyService({
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  redirectUri: process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:4350/callback'
+});
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -17,6 +25,22 @@ function createWindow() {
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   }
 }
+
+ipcMain.handle('spotify:isConfigured', () => {
+  return spotifyService.isConfigured();
+});
+
+ipcMain.handle('spotify:isAuthenticated', () => {
+  return spotifyService.isAuthenticated();
+});
+
+ipcMain.handle('spotify:login', async () => {
+  return spotifyService.login();
+});
+
+ipcMain.handle('spotify:getCurrentUser', async () => {
+  return spotifyService.getCurrentUserProfile();
+});
 
 app.whenReady().then(() => {
   createWindow();
