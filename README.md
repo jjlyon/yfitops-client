@@ -11,8 +11,9 @@ simple Spotify authentication flow that prompts users to sign in and greets them
    npm install
    ```
 
-2. Provide Spotify credentials via environment variables. The app expects a Spotify application configured with the following
-   redirect URI: `http://localhost:4350/callback`. Set the variables before starting the development server:
+2. Create a Spotify application in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and add
+   `http://localhost:4350/callback` to the app's **Redirect URIs** list. Provide the resulting credentials to the app via
+   environment variables before starting the development server:
 
    ```bash
    export SPOTIFY_CLIENT_ID=<your client id>

@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "electron-oauth2": "^3.0.0",
     "spotify-web-api-node": "^5.0.2"
   }
 }
