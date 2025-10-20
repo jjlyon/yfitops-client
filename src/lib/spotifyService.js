@@ -3,6 +3,8 @@ const { randomBytes } = require('crypto');
 const SpotifyWebApi = require('spotify-web-api-node');
 
 const DEFAULT_SCOPES = ['user-read-email', 'user-read-private'];
+const SEARCH_TYPES = ['track', 'album', 'artist'];
+const SEARCH_LIMIT = 15;
 
 class SpotifyService {
   constructor(config = {}) {
@@ -224,6 +226,75 @@ class SpotifyService {
 
     const { body } = await this.spotifyApi.getMe();
     return body;
+  }
+
+  async searchCatalog(query, { types = SEARCH_TYPES, limit = SEARCH_LIMIT, attempt = 0 } = {}) {
+    if (!this.isConfigured()) {
+      throw new Error('Spotify credentials are not configured.');
+    }
+
+    const trimmedQuery = typeof query === 'string' ? query.trim() : '';
+    if (!trimmedQuery) {
+      return {
+        tracks: [],
+        albums: [],
+        artists: []
+      };
+    }
+
+    const hasToken = await this.ensureAccessToken();
+    if (!hasToken) {
+      throw new Error('Spotify session is not authenticated.');
+    }
+
+    const uniqueTypes = Array.from(new Set((types || SEARCH_TYPES).filter(Boolean)));
+    if (uniqueTypes.length === 0) {
+      throw new Error('At least one Spotify entity type is required for search.');
+    }
+
+    const options = {
+      limit,
+      market: 'from_token'
+    };
+
+    const searchStart = Date.now();
+
+    try {
+      const { body } = await this.spotifyApi.search(trimmedQuery, uniqueTypes, options);
+      const elapsed = Date.now() - searchStart;
+      console.info('[spotify] search_performed', {
+        queryLength: trimmedQuery.length,
+        types: uniqueTypes,
+        durationMs: elapsed,
+        timestamp: new Date().toISOString()
+      });
+
+      return {
+        tracks: body?.tracks?.items || [],
+        albums: body?.albums?.items || [],
+        artists: body?.artists?.items || []
+      };
+    } catch (error) {
+      if (error?.statusCode === 429 && attempt < 2) {
+        const retryAfterSeconds = Number(error.headers?.['retry-after']) || 1;
+        console.warn('[spotify] search rate limited, retrying', {
+          retryAfterSeconds,
+          attempt
+        });
+        await new Promise((resolve) => setTimeout(resolve, retryAfterSeconds * 1000));
+        return this.searchCatalog(trimmedQuery, {
+          types: uniqueTypes,
+          limit,
+          attempt: attempt + 1
+        });
+      }
+
+      console.error('[spotify] search_failed', {
+        message: error?.message,
+        status: error?.statusCode
+      });
+      throw error;
+    }
   }
 }
 
