@@ -42,8 +42,9 @@
   <body>
     <main>
       <h1>YFitOps Player</h1>
-      <p>This Electron shell will eventually host a Spotify-powered experience.</p>
-      <p>For now, use this project as a foundation for future integrations.</p>
+      <p id="welcome" hidden>Welcome!</p>
+      <p id="status">Checking Spotify login status…</p>
+      <button id="spotifyLogin" hidden>Log in with Spotify</button>
     </main>
     <script>
       window.addEventListener('DOMContentLoaded', () => {
@@ -51,6 +52,80 @@
         if (info) {
           document.title = info.name;
         }
+
+        const welcome = document.getElementById('welcome');
+        const status = document.getElementById('status');
+        const loginButton = document.getElementById('spotifyLogin');
+
+        const updateForProfile = (profile) => {
+          if (!profile) {
+            return;
+          }
+
+          const displayName = profile.display_name || profile.id || 'Spotify user';
+          welcome.textContent = `Welcome ${displayName}`;
+          welcome.hidden = false;
+          loginButton.hidden = true;
+          loginButton.disabled = false;
+          status.textContent = '';
+        };
+
+        const showLoginPrompt = (message) => {
+          welcome.hidden = true;
+          loginButton.hidden = false;
+          loginButton.disabled = false;
+          status.textContent = message;
+        };
+
+        const showError = (message) => {
+          welcome.hidden = true;
+          loginButton.hidden = false;
+          loginButton.disabled = false;
+          status.textContent = message;
+        };
+
+        const refreshState = async () => {
+          if (!window.spotify) {
+            showError('Spotify integration is unavailable in this build.');
+            loginButton.hidden = true;
+            return;
+          }
+
+          const configured = await window.spotify.isConfigured();
+          if (!configured) {
+            showError('Set Spotify credentials (client ID, secret, redirect URI) before logging in.');
+            loginButton.hidden = true;
+            return;
+          }
+
+          const authenticated = await window.spotify.isAuthenticated();
+          if (authenticated) {
+            try {
+              const profile = await window.spotify.getCurrentUser();
+              updateForProfile(profile);
+            } catch (error) {
+              const message = error?.message || String(error);
+              showError(`Unable to load Spotify profile: ${message}`);
+            }
+          } else {
+            showLoginPrompt('Connect your Spotify account to get started.');
+          }
+        };
+
+        loginButton.addEventListener('click', async () => {
+          loginButton.disabled = true;
+          status.textContent = 'Opening Spotify login…';
+
+          try {
+            const profile = await window.spotify.login();
+            updateForProfile(profile);
+          } catch (error) {
+            const message = error?.message || String(error);
+            showError(`Spotify login failed: ${message}`);
+          }
+        });
+
+        refreshState();
       });
     </script>
   </body>
