@@ -241,7 +241,6 @@ const bootstrap = () => {
   const searchSpinner = document.getElementById('searchSpinner');
   const searchWrapper = document.getElementById('searchWrapper');
   const searchTooltip = document.getElementById('searchTooltip');
-  const searchMessage = document.getElementById('searchMessage');
   const resultsContainer = document.getElementById('resultsContainer');
   const searchView = document.getElementById('searchView');
   const authView = document.getElementById('authView');
@@ -249,7 +248,6 @@ const bootstrap = () => {
 
   initSearchResults({
     resultsContainer,
-    searchMessage,
     searchInput,
     searchSpinner
   });
@@ -257,7 +255,6 @@ const bootstrap = () => {
   initReleaseView({
     releaseView,
     resultsContainer,
-    searchMessage,
     searchInput,
     getSpotify,
     onResultsRequested: renderResults

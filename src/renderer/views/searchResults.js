@@ -3,30 +3,32 @@ import { createImage, summariseArtists } from '../utils.js';
 import { openReleaseView, closeReleaseView } from './releaseView.js';
 
 let resultsContainer = null;
-let searchMessage = null;
 let searchInput = null;
 let searchSpinner = null;
 
 export const initSearchResults = ({
   resultsContainer: resultsContainerElement,
-  searchMessage: searchMessageElement,
   searchInput: searchInputElement,
   searchSpinner: searchSpinnerElement
 } = {}) => {
   resultsContainer = resultsContainerElement;
-  searchMessage = searchMessageElement;
   searchInput = searchInputElement;
   searchSpinner = searchSpinnerElement;
 };
 
 export const renderEmptyMessage = (message) => {
-  if (!searchMessage) {
+  if (!resultsContainer) {
     return;
   }
-  searchMessage.textContent = '';
+
+  resultsContainer.hidden = false;
+  resultsContainer.textContent = '';
+  const stateMessage = document.createElement('div');
+  stateMessage.className = 'state-message';
   const strong = document.createElement('strong');
   strong.textContent = message;
-  searchMessage.appendChild(strong);
+  stateMessage.appendChild(strong);
+  resultsContainer.appendChild(stateMessage);
 };
 
 export const toggleLoading = (loading) => {
@@ -217,6 +219,7 @@ export const renderResults = () => {
     return;
   }
 
+  resultsContainer.hidden = false;
   resultsContainer.textContent = '';
   closeAllTrackMenus();
 
@@ -225,6 +228,15 @@ export const renderResults = () => {
   }
 
   ensureActiveTab();
+
+  const totalResults =
+    (state.search.results.tracks?.length || 0) +
+    (state.search.results.albums?.length || 0);
+
+  if (totalResults === 0) {
+    renderEmptyMessage('No matches found.');
+    return;
+  }
 
   const tablist = document.createElement('div');
   tablist.className = 'results-tablist';
@@ -278,6 +290,19 @@ export const renderResults = () => {
     tablist.appendChild(button);
   });
 
+  const items = state.search.results[state.search.activeTab] || [];
+
+  const summary = document.createElement('div');
+  summary.className = 'state-message';
+  const strong = document.createElement('strong');
+  strong.textContent = `${totalResults} result${totalResults === 1 ? '' : 's'} found`;
+  summary.appendChild(strong);
+  if (!items.length) {
+    const hint = document.createElement('div');
+    hint.textContent = 'Try the other tab to see more results.';
+    summary.appendChild(hint);
+  }
+  resultsContainer.appendChild(summary);
   resultsContainer.appendChild(tablist);
 
   const panel = document.createElement('div');
@@ -286,7 +311,6 @@ export const renderResults = () => {
   panel.setAttribute('role', 'tabpanel');
   panel.setAttribute('aria-labelledby', `results-tab-${state.search.activeTab}`);
 
-  const items = state.search.results[state.search.activeTab] || [];
   if (!items.length) {
     const empty = document.createElement('div');
     empty.className = 'state-message';
@@ -306,34 +330,13 @@ export const renderResults = () => {
 
   resultsContainer.appendChild(panel);
 
-  const totalResults =
-    (state.search.results.tracks?.length || 0) +
-    (state.search.results.albums?.length || 0);
-
-  if (!searchMessage) {
-    return;
-  }
-
-  searchMessage.textContent = '';
-  if (totalResults === 0) {
-    renderEmptyMessage('No matches found.');
-  } else {
-    const strong = document.createElement('strong');
-    strong.textContent = `${totalResults} result${totalResults === 1 ? '' : 's'} found`;
-    searchMessage.appendChild(strong);
-    if (!items.length) {
-      const hint = document.createElement('div');
-      hint.textContent = 'Try the other tab to see more results.';
-      searchMessage.appendChild(hint);
-    }
-  }
 };
 
 export const updateSearchStatus = (status, errorMessage, { onRetry } = {}) => {
   state.search.status = status;
   state.search.error = errorMessage || null;
 
-  if (!searchMessage) {
+  if (!resultsContainer) {
     return;
   }
 
@@ -343,22 +346,33 @@ export const updateSearchStatus = (status, errorMessage, { onRetry } = {}) => {
   }
 
   if (status === 'loading') {
-    searchMessage.textContent = '';
+    resultsContainer.hidden = false;
+    resultsContainer.textContent = '';
+    const message = document.createElement('div');
+    message.className = 'state-message';
     const strong = document.createElement('strong');
     strong.textContent = 'Searching…';
-    searchMessage.appendChild(strong);
+    message.appendChild(strong);
+    resultsContainer.appendChild(message);
     return;
   }
 
   if (status === 'error') {
-    searchMessage.textContent = `Couldn't reach Spotify. ${errorMessage || ''}`.trim();
+    resultsContainer.hidden = false;
+    resultsContainer.textContent = '';
+    const message = document.createElement('div');
+    message.className = 'state-message';
+    const strong = document.createElement('strong');
+    strong.textContent = `Couldn't reach Spotify. ${errorMessage || ''}`.trim();
+    message.appendChild(strong);
     if (onRetry) {
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = 'Try again';
       button.addEventListener('click', onRetry);
-      searchMessage.appendChild(button);
+      message.appendChild(button);
     }
+    resultsContainer.appendChild(message);
     return;
   }
 };
@@ -379,8 +393,6 @@ export const resetSearchState = ({ announce = true } = {}) => {
 
   if (announce) {
     renderEmptyMessage('Start typing to search the Spotify catalog.');
-  } else if (searchMessage) {
-    searchMessage.textContent = '';
   }
 };
 
