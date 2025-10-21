@@ -103,7 +103,7 @@ export const renderReleaseView = () => {
   if (state.release.status === 'error') {
     const message = state.release.error
       ? `Couldn't load release details. ${state.release.error}`.trim()
-      : 'Couldn't load release details.';
+      : 'Couldn\'t load release details.';
     releaseView.appendChild(renderStatusRow(message));
 
     const retry = document.createElement('button');
