@@ -4,21 +4,36 @@ import { createImage, summariseArtists, formatReleaseMeta, formatDuration } from
 let releaseView = null;
 let resultsContainer = null;
 let searchInput = null;
+let searchShell = null;
 let getSpotify = null;
 let onResultsRequested = () => {};
+let lastFocusedResult = null;
 
 export const initReleaseView = ({
   releaseView: releaseViewElement,
   resultsContainer: resultsContainerElement,
   searchInput: searchInputElement,
+  searchShell: searchShellElement,
   getSpotify: getSpotifyFn,
   onResultsRequested: onResultsRequestedFn
 } = {}) => {
   releaseView = releaseViewElement;
   resultsContainer = resultsContainerElement;
   searchInput = searchInputElement;
+  searchShell = searchShellElement;
   getSpotify = getSpotifyFn || null;
   onResultsRequested = onResultsRequestedFn || (() => {});
+};
+
+const syncSearchShellModifier = () => {
+  if (!searchShell) {
+    return;
+  }
+  if (state.release.active) {
+    searchShell.classList.add('search-state-panel--release-active');
+  } else {
+    searchShell.classList.remove('search-state-panel--release-active');
+  }
 };
 
 const renderStatusRow = (message) => {
@@ -44,13 +59,25 @@ export const closeReleaseView = ({ restoreFocus = false } = {}) => {
   if (resultsContainer) {
     resultsContainer.hidden = false;
   }
+  syncSearchShellModifier();
   if (restoreFocus && wasActive) {
-    const focusable = resultsContainer?.querySelector('[data-focus-index="0"]');
-    if (focusable) {
-      focusable.focus();
-    } else if (searchInput) {
+    const target = lastFocusedResult;
+    lastFocusedResult = null;
+    if (
+      target &&
+      document.contains(target) &&
+      !target.hasAttribute('disabled') &&
+      target.offsetParent !== null
+    ) {
+      target.focus();
+      return;
+    }
+    if (searchInput) {
       searchInput.focus();
     }
+  }
+  if (!restoreFocus) {
+    lastFocusedResult = null;
   }
 };
 
@@ -65,13 +92,16 @@ export const renderReleaseView = () => {
     if (resultsContainer) {
       resultsContainer.hidden = false;
     }
+    syncSearchShellModifier();
     return;
   }
 
   releaseView.hidden = false;
+  releaseView.scrollTop = 0;
   if (resultsContainer) {
     resultsContainer.hidden = true;
   }
+  syncSearchShellModifier();
 
   const header = document.createElement('div');
   header.className = 'release-header';
@@ -199,6 +229,13 @@ export const renderReleaseView = () => {
 export const openReleaseView = async ({ albumId, initialAlbum, highlightTrackId }) => {
   if (!albumId) {
     return;
+  }
+
+  const activeElement = document.activeElement;
+  if (activeElement && searchShell?.contains(activeElement)) {
+    lastFocusedResult = activeElement;
+  } else {
+    lastFocusedResult = null;
   }
 
   const requestId = state.release.requestId + 1;

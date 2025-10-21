@@ -256,6 +256,7 @@ const bootstrap = () => {
     releaseView,
     resultsContainer,
     searchInput,
+    searchShell: searchView,
     getSpotify,
     onResultsRequested: renderResults
   });
