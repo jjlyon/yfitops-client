@@ -1,8 +1,8 @@
 # YFitOps Client
 
 A bare-bones Electron application that lays the groundwork for a future Spotify-powered music player. The app now includes a
-simple Spotify authentication flow that prompts users to sign in and greets them by display name once the login completes, plus
-a global search workspace for quickly browsing tracks, albums, and artists.
+simple Spotify authentication flow that prompts users to sign in along with a global search workspace for quickly browsing
+tracks and releases.
 
 ## Getting Started
 
@@ -29,17 +29,16 @@ a global search workspace for quickly browsing tracks, albums, and artists.
    ```
 
 This will launch a desktop window that displays a discovery-focused interface styled with Spotify-inspired colors. If Spotify
-credentials are present, the UI will either prompt for login or show "Welcome &lt;username&gt;" after the OAuth flow completes. The
-window is configured to open the Chromium devtools automatically while running in development mode to assist with future feature
-work.
+credentials are present, the UI will prompt for login and, once authenticated, unlock global search. The window is configured to
+open the Chromium devtools automatically while running in development mode to assist with future feature work.
 
 ### Global Search
 
 Once authenticated, a search input is available in the top navigation. Queries are debounced and sent to Spotify's
-[`/v1/search`](https://developer.spotify.com/documentation/web-api/reference/search) endpoint, with results grouped by tracks,
-albums, and artists. Selecting an album opens an inline release detail view, and selecting a track reveals queue management
-actions (Play, Play Next, Add to Queue). When no matches are found, the UI communicates the empty state, and API failures surface
-a retry affordance.
+[`/v1/search`](https://developer.spotify.com/documentation/web-api/reference/search) endpoint, with results organized under
+Tracks and Albums & EPs tabs. Selecting any result opens a dedicated release view with a back button so users can drill into the
+release and then return to their search results. Track cards still expose queue management actions (Play, Play Next,
+Add to Queue). When no matches are found, the UI communicates the empty state, and API failures surface a retry affordance.
 
 The search experience can be toggled off by setting `ENABLE_SEARCH=false` in the environment before launching the Electron app.
 

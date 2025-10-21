@@ -52,6 +52,14 @@ ipcMain.handle('spotify:search', async (_event, query) => {
   return spotifyService.searchCatalog(query);
 });
 
+ipcMain.handle('spotify:getAlbum', async (_event, albumId) => {
+  if (!enableSearch) {
+    throw new Error('Global search is currently disabled.');
+  }
+
+  return spotifyService.getAlbum(albumId);
+});
+
 app.whenReady().then(() => {
   createWindow();
 

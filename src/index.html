@@ -200,22 +200,40 @@
       }
 
       .results-container {
-        display: grid;
-        gap: 1.5rem;
-      }
-
-      .result-section {
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        gap: 1rem;
       }
 
-      .result-section h2 {
-        margin: 0;
-        font-size: 1rem;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+      .results-tablist {
+        display: flex;
+        gap: 0.5rem;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 999px;
+        padding: 0.35rem;
+        align-self: flex-start;
+      }
+
+      .results-tab {
+        border: none;
+        border-radius: 999px;
+        padding: 0.5rem 1.1rem;
+        background: transparent;
+        color: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
         opacity: 0.7;
+      }
+
+      .results-tab:focus-visible {
+        outline: 2px solid rgba(30, 215, 96, 0.9);
+        outline-offset: 2px;
+      }
+
+      .results-tab[aria-selected='true'] {
+        background: rgba(30, 215, 96, 0.8);
+        color: #000000;
+        opacity: 1;
       }
 
       .result-grid {
@@ -288,14 +306,6 @@
         flex-wrap: wrap;
       }
 
-      .track-card .result-actions {
-        display: none;
-      }
-
-      .track-card.track-menu-open .result-actions {
-        display: flex;
-      }
-
       .result-actions button {
         padding: 0.5rem 1rem;
         border-radius: 999px;
@@ -307,6 +317,40 @@
         cursor: pointer;
       }
 
+      .track-card {
+        position: relative;
+      }
+
+      .track-card .menu-toggle {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        border: none;
+        border-radius: 999px;
+        padding: 0.35rem 0.75rem;
+        background: rgba(0, 0, 0, 0.45);
+        color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        opacity: 0.8;
+      }
+
+      .track-card .menu-toggle:focus-visible,
+      .track-card.track-menu-open .menu-toggle {
+        outline: 2px solid rgba(30, 215, 96, 0.9);
+        outline-offset: 2px;
+        opacity: 1;
+      }
+
+      .track-card .result-actions {
+        display: none;
+      }
+
+      .track-card.track-menu-open .result-actions {
+        display: flex;
+      }
+
       .result-actions button:hover,
       .result-actions button:focus-visible {
         background: rgba(30, 215, 96, 0.65);
@@ -315,57 +359,104 @@
 
       .release-view {
         margin-top: 1rem;
-        padding: 1.25rem;
-        border-radius: 1rem;
-        background: rgba(0, 0, 0, 0.5);
+        padding: 1.5rem;
+        border-radius: 1.25rem;
+        background: rgba(0, 0, 0, 0.55);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: auto 1fr;
-      }
-
-      .release-view img {
-        width: 160px;
-        height: 160px;
-        border-radius: 1rem;
-        object-fit: cover;
-      }
-
-      .release-details h3 {
-        margin: 0;
-        font-size: 1.5rem;
-      }
-
-      .release-details p {
-        margin: 0.5rem 0;
-        opacity: 0.75;
-      }
-
-      .release-actions {
         display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 1.5rem;
       }
 
-      .release-actions button {
-        padding: 0.6rem 1.25rem;
-        border-radius: 999px;
+      .release-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .release-back,
+      .release-retry {
         border: none;
+        border-radius: 999px;
+        padding: 0.5rem 1.1rem;
         background: rgba(255, 255, 255, 0.12);
         color: #ffffff;
         font-weight: 600;
         cursor: pointer;
       }
 
-      .release-actions button:hover,
-      .release-actions button:focus-visible {
+      .release-back:focus-visible,
+      .release-back:hover,
+      .release-retry:focus-visible,
+      .release-retry:hover {
         background: rgba(30, 215, 96, 0.65);
         color: #000000;
       }
 
-      .release-actions button[disabled] {
-        opacity: 0.6;
-        cursor: not-allowed;
+      .release-content {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 1.5rem;
+      }
+
+      .release-artwork img {
+        width: 200px;
+        height: 200px;
+        border-radius: 1.25rem;
+        object-fit: cover;
+      }
+
+      .release-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .release-details h3 {
+        margin: 0;
+        font-size: 1.75rem;
+      }
+
+      .release-details p {
+        margin: 0;
+        opacity: 0.8;
+      }
+
+      .release-tracklist {
+        background: rgba(0, 0, 0, 0.35);
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-height: 280px;
+        overflow-y: auto;
+      }
+
+      .tracklist-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        border-radius: 0.75rem;
+        padding: 0.6rem 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .tracklist-item.highlight {
+        background: rgba(30, 215, 96, 0.25);
+      }
+
+      .tracklist-item span {
+        opacity: 0.75;
+        font-size: 0.85rem;
+      }
+
+      .release-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        opacity: 0.8;
       }
 
       .sr-only {
@@ -409,16 +500,19 @@
         }
 
         .release-view {
-          grid-template-columns: 1fr;
           text-align: center;
         }
 
-        .release-view img {
+        .release-content {
+          grid-template-columns: 1fr;
+        }
+
+        .release-artwork img {
           margin: 0 auto;
         }
 
-        .release-actions {
-          justify-content: center;
+        .release-tracklist {
+          max-height: none;
         }
       }
     </style>
@@ -443,7 +537,7 @@
               id="globalSearchInput"
               class="search-input"
               type="search"
-              placeholder="Search songs, albums, or artists…"
+              placeholder="Search songs or releases…"
               autocomplete="off"
               spellcheck="false"
               title="Press Enter to search"
@@ -457,7 +551,6 @@
       </header>
       <main class="app-content" id="appContent">
         <section id="authView" class="auth-card" aria-live="polite">
-          <p id="welcome" hidden>Welcome!</p>
           <p id="status">Checking Spotify login status…</p>
           <button id="spotifyLogin" hidden>Log in with Spotify</button>
         </section>
@@ -468,612 +561,873 @@
         </section>
       </main>
     </div>
-    <script>
-      window.addEventListener('DOMContentLoaded', () => {
-        const info = window.appInfo;
-        if (info) {
-          document.title = info.name;
+    
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const info = window.appInfo;
+    if (info) {
+      document.title = info.name;
+    }
+
+    const status = document.getElementById('status');
+    const loginButton = document.getElementById('spotifyLogin');
+    const searchInput = document.getElementById('globalSearchInput');
+    const searchSpinner = document.getElementById('searchSpinner');
+    const searchWrapper = document.getElementById('searchWrapper');
+    const searchTooltip = document.getElementById('searchTooltip');
+    const searchMessage = document.getElementById('searchMessage');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const searchView = document.getElementById('searchView');
+    const authView = document.getElementById('authView');
+    const releaseView = document.getElementById('releaseView');
+
+    const tabs = [
+      { key: 'tracks', label: 'Tracks' },
+      { key: 'albums', label: 'Albums & EPs' }
+    ];
+
+    const state = {
+      profile: null,
+      search: {
+        query: '',
+        status: 'idle',
+        activeTab: 'tracks',
+        results: { tracks: [], albums: [] },
+        error: null,
+        lastIssuedRequest: 0,
+        lastCompletedRequest: 0
+      },
+      release: {
+        active: false,
+        status: 'idle',
+        album: null,
+        albumId: null,
+        highlightTrackId: null,
+        requestId: 0,
+        error: null
+      }
+    };
+
+    const summariseArtists = (artists = []) => artists.map((artist) => artist.name).join(', ');
+
+    const createImage = (url, alt) => {
+      const img = document.createElement('img');
+      img.src = url || 'https://via.placeholder.com/200?text=Spotify';
+      img.alt = alt;
+      return img;
+    };
+
+    const formatReleaseType = (album) => {
+      const type = album?.album_type;
+      if (!type) {
+        return 'Release';
+      }
+      return type.charAt(0).toUpperCase() + type.slice(1);
+    };
+
+    const formatReleaseMeta = (album) => {
+      const parts = [];
+      const releaseType = formatReleaseType(album);
+      if (releaseType) {
+        parts.push(releaseType);
+      }
+      if (album?.release_date) {
+        parts.push(album.release_date);
+      }
+      if (typeof album?.total_tracks === 'number') {
+        const trackCount = album.total_tracks;
+        parts.push(`${trackCount} track${trackCount === 1 ? '' : 's'}`);
+      }
+      return parts.join(' • ');
+    };
+
+    const formatDuration = (ms) => {
+      if (!Number.isFinite(ms)) {
+        return '';
+      }
+      const totalSeconds = Math.round(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${String(seconds).padStart(2, '0')}`;
+    };
+
+    const renderEmptyMessage = (message) => {
+      searchMessage.textContent = '';
+      const strong = document.createElement('strong');
+      strong.textContent = message;
+      searchMessage.appendChild(strong);
+    };
+
+    const toggleLoading = (loading) => {
+      searchSpinner.hidden = !loading;
+      searchInput.setAttribute('aria-busy', loading ? 'true' : 'false');
+    };
+
+    const ensureActiveTab = () => {
+      const currentItems = state.search.results[state.search.activeTab] || [];
+      if (currentItems.length > 0) {
+        return;
+      }
+
+      for (const tab of tabs) {
+        if ((state.search.results[tab.key] || []).length > 0) {
+          state.search.activeTab = tab.key;
+          return;
         }
-
-        const welcome = document.getElementById('welcome');
-        const status = document.getElementById('status');
-        const loginButton = document.getElementById('spotifyLogin');
-        const searchInput = document.getElementById('globalSearchInput');
-        const searchSpinner = document.getElementById('searchSpinner');
-        const searchWrapper = document.getElementById('searchWrapper');
-        const searchTooltip = document.getElementById('searchTooltip');
-        const searchMessage = document.getElementById('searchMessage');
-        const resultsContainer = document.getElementById('resultsContainer');
-        const searchView = document.getElementById('searchView');
-        const authView = document.getElementById('authView');
-        const releaseView = document.getElementById('releaseView');
-
-        const state = {
-          profile: null,
-          search: {
-            query: '',
-            status: 'idle',
-            results: { tracks: [], albums: [], artists: [] },
-            error: null,
-            lastIssuedRequest: 0,
-            lastCompletedRequest: 0
-          }
-        };
-
-        const clearReleaseView = () => {
-          releaseView.hidden = true;
-          releaseView.textContent = '';
-        };
-
-        const createImage = (url, alt) => {
-          const img = document.createElement('img');
-          img.src = url || 'https://via.placeholder.com/160?text=Spotify';
-          img.alt = alt;
-          return img;
-        };
-
-        const summariseArtists = (artists = []) => artists.map((artist) => artist.name).join(', ');
-
-        const renderReleaseView = (album) => {
-          if (!album) {
-            clearReleaseView();
-            return;
-          }
-
-          releaseView.hidden = false;
-          releaseView.textContent = '';
-
-          const artwork = createImage(album.images?.[0]?.url, `${album.name} cover art`);
-          const details = document.createElement('div');
-          details.className = 'release-details';
-
-          const title = document.createElement('h3');
-          title.textContent = album.name;
-
-          const artistsLine = document.createElement('p');
-          artistsLine.textContent = summariseArtists(album.artists);
-
-          const releaseDate = document.createElement('p');
-          releaseDate.textContent = album.release_date ? `Released ${album.release_date}` : 'Release date unavailable';
-
-          const actionRow = document.createElement('div');
-          actionRow.className = 'release-actions';
-
-          const openInSpotify = document.createElement('button');
-          openInSpotify.type = 'button';
-          openInSpotify.textContent = 'Open in Spotify';
-          const spotifyUrl = album.external_urls?.spotify;
-          if (spotifyUrl) {
-            openInSpotify.addEventListener('click', () => {
-              console.info('release_view_action', { action: 'open_in_spotify', uri: album.uri });
-              window.open(spotifyUrl, '_blank', 'noopener');
-            });
-          } else {
-            openInSpotify.disabled = true;
-            openInSpotify.textContent = 'Spotify link unavailable';
-          }
-
-          actionRow.appendChild(openInSpotify);
-
-          details.appendChild(title);
-          details.appendChild(artistsLine);
-          details.appendChild(releaseDate);
-          details.appendChild(actionRow);
-
-          releaseView.appendChild(artwork);
-          releaseView.appendChild(details);
-        };
-
-        const renderEmptyMessage = (message) => {
-          searchMessage.textContent = '';
-          const strong = document.createElement('strong');
-          strong.textContent = message;
-          searchMessage.appendChild(strong);
-        };
-
-        const resetSearchState = ({ announce = true } = {}) => {
-          state.search.status = 'idle';
-          state.search.query = searchInput.value || '';
-          state.search.results = { tracks: [], albums: [], artists: [] };
-          state.search.error = null;
-          resultsContainer.textContent = '';
-          clearReleaseView();
-          if (announce) {
-            renderEmptyMessage('Start typing to search the Spotify catalog.');
-          }
-        };
-
-        const toggleLoading = (loading) => {
-          searchSpinner.hidden = !loading;
-          searchInput.setAttribute('aria-busy', loading ? 'true' : 'false');
-        };
-
-        const closeAllTrackMenus = () => {
-          resultsContainer
-            .querySelectorAll('.track-card')
-            .forEach((card) => {
-              card.classList.remove('track-menu-open');
-              const trigger = card.querySelector('.result-main');
-              if (trigger) {
-                trigger.setAttribute('aria-expanded', 'false');
-              }
-            });
-        };
-
-        const buildTrackCard = (track, index) => {
-          const card = document.createElement('article');
-          card.className = 'result-card track-card';
-
-          const mainButton = document.createElement('button');
-          mainButton.type = 'button';
-          mainButton.className = 'result-main search-focusable';
-          mainButton.dataset.focusIndex = index;
-          mainButton.setAttribute('aria-expanded', 'false');
-          mainButton.addEventListener('click', () => {
-            const willOpen = !card.classList.contains('track-menu-open');
-            closeAllTrackMenus();
-            if (willOpen) {
-              card.classList.add('track-menu-open');
-              mainButton.setAttribute('aria-expanded', 'true');
-            }
-          });
-
-          mainButton.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              mainButton.click();
-            }
-          });
-
-          const meta = document.createElement('div');
-          meta.className = 'result-meta';
-          const artwork = createImage(track.album?.images?.[0]?.url, `${track.name} cover art`);
-          const textGroup = document.createElement('div');
-          textGroup.className = 'text-group';
-          const title = document.createElement('strong');
-          title.textContent = track.name;
-          const subtitle = document.createElement('span');
-          subtitle.textContent = summariseArtists(track.artists);
-
-          textGroup.appendChild(title);
-          textGroup.appendChild(subtitle);
-          meta.appendChild(artwork);
-          meta.appendChild(textGroup);
-          mainButton.appendChild(meta);
-
-          const actions = document.createElement('div');
-          actions.className = 'result-actions';
-
-          const queueActions = [
-            { label: 'Play', action: 'play_now' },
-            { label: 'Play Next', action: 'play_next' },
-            { label: 'Add to Queue', action: 'append_queue' }
-          ];
-
-          queueActions.forEach(({ label, action }) => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.textContent = label;
-            button.addEventListener('click', () => {
-              console.info('search_result_clicked', {
-                entityType: 'track',
-                action,
-                uri: track.uri,
-                queryLength: state.search.query.length
-              });
-              closeAllTrackMenus();
-              mainButton.setAttribute('aria-expanded', 'false');
-            });
-            actions.appendChild(button);
-          });
-
-          card.appendChild(mainButton);
-          card.appendChild(actions);
-          return card;
-        };
-
-        const buildAlbumCard = (album, index) => {
-          const card = document.createElement('article');
-          card.className = 'result-card album-card';
-
-          const mainButton = document.createElement('button');
-          mainButton.type = 'button';
-          mainButton.className = 'result-main search-focusable';
-          mainButton.dataset.focusIndex = index;
-          mainButton.addEventListener('click', () => {
-            closeAllTrackMenus();
-            console.info('search_result_clicked', {
-              entityType: 'album',
-              uri: album.uri,
-              queryLength: state.search.query.length
-            });
-            renderReleaseView(album);
-            searchMessage.textContent = '';
-            const strong = document.createElement('strong');
-            strong.textContent = 'Release View';
-            const subtitle = document.createElement('div');
-            subtitle.textContent = album.name;
-            searchMessage.appendChild(strong);
-            searchMessage.appendChild(subtitle);
-          });
-
-          mainButton.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              mainButton.click();
-            }
-          });
-
-          const meta = document.createElement('div');
-          meta.className = 'result-meta';
-          const artwork = createImage(album.images?.[0]?.url, `${album.name} cover art`);
-          const textGroup = document.createElement('div');
-          textGroup.className = 'text-group';
-          const title = document.createElement('strong');
-          title.textContent = album.name;
-          const subtitle = document.createElement('span');
-          subtitle.textContent = summariseArtists(album.artists);
-
-          textGroup.appendChild(title);
-          textGroup.appendChild(subtitle);
-          meta.appendChild(artwork);
-          meta.appendChild(textGroup);
-          mainButton.appendChild(meta);
-          card.appendChild(mainButton);
-
-          return card;
-        };
-
-        const buildArtistCard = (artist, index) => {
-          const card = document.createElement('article');
-          card.className = 'result-card artist-card';
-
-          const mainButton = document.createElement('button');
-          mainButton.type = 'button';
-          mainButton.className = 'result-main search-focusable';
-          mainButton.dataset.focusIndex = index;
-          mainButton.addEventListener('click', () => {
-            closeAllTrackMenus();
-            console.info('search_result_clicked', {
-              entityType: 'artist',
-              uri: artist.uri,
-              queryLength: state.search.query.length
-            });
-            window.open(artist.external_urls?.spotify, '_blank', 'noopener');
-          });
-
-          mainButton.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              mainButton.click();
-            }
-          });
-
-          const meta = document.createElement('div');
-          meta.className = 'result-meta';
-          const artwork = createImage(artist.images?.[0]?.url, `${artist.name} portrait`);
-          const textGroup = document.createElement('div');
-          textGroup.className = 'text-group';
-          const title = document.createElement('strong');
-          title.textContent = artist.name;
-          const subtitle = document.createElement('span');
-          subtitle.textContent = 'Artist';
-
-          textGroup.appendChild(title);
-          textGroup.appendChild(subtitle);
-          meta.appendChild(artwork);
-          meta.appendChild(textGroup);
-          mainButton.appendChild(meta);
-          card.appendChild(mainButton);
-
-          return card;
-        };
-
-        const renderResults = () => {
-          resultsContainer.textContent = '';
-          closeAllTrackMenus();
-
-          const groups = [
-            { label: 'Tracks', key: 'tracks', builder: buildTrackCard },
-            { label: 'Albums', key: 'albums', builder: buildAlbumCard },
-            { label: 'Artists', key: 'artists', builder: buildArtistCard }
-          ];
-
-          let focusIndex = 0;
-          let totalItems = 0;
-
-          groups.forEach((group) => {
-            const items = state.search.results[group.key] || [];
-            if (!items.length) {
-              return;
-            }
-
-            totalItems += items.length;
-            const section = document.createElement('section');
-            section.className = 'result-section';
-            section.setAttribute('aria-label', group.label);
-
-            const heading = document.createElement('h2');
-            heading.textContent = group.label;
-            section.appendChild(heading);
-
-            const grid = document.createElement('div');
-            grid.className = 'result-grid';
-
-            items.forEach((item) => {
-              const card = group.builder(item, focusIndex);
-              grid.appendChild(card);
-              focusIndex += 1;
-            });
-
-            section.appendChild(grid);
-            resultsContainer.appendChild(section);
-          });
-
-          if (totalItems === 0) {
-            renderEmptyMessage('No matches found.');
-          } else {
-            searchMessage.textContent = '';
-            const strong = document.createElement('strong');
-            strong.textContent = `${totalItems} result${totalItems === 1 ? '' : 's'} found`;
-            searchMessage.appendChild(strong);
-          }
-        };
-
-        const updateSearchStatus = (status, errorMessage) => {
-          state.search.status = status;
-          state.search.error = errorMessage || null;
-
-          if (status === 'idle' && !state.search.query) {
-            renderEmptyMessage('Start typing to search the Spotify catalog.');
-            return;
-          }
-
-          if (status === 'loading') {
-            searchMessage.textContent = '';
-            const strong = document.createElement('strong');
-            strong.textContent = 'Searching…';
-            searchMessage.appendChild(strong);
-            return;
-          }
-
-          if (status === 'error') {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.textContent = 'Try again';
-            button.addEventListener('click', () => {
-              if (state.search.query) {
-                performSearch(state.search.query);
-              }
-            });
-            searchMessage.textContent = `Couldn't reach Spotify. ${errorMessage || ''}`.trim();
-            searchMessage.appendChild(button);
-            return;
-          }
-        };
-
-        const performSearch = async (query) => {
-          const trimmed = query.trim();
-          state.search.query = trimmed;
-
-          if (!trimmed) {
-            resetSearchState();
-            toggleLoading(false);
-            return;
-          }
-
-          clearReleaseView();
-
-          const requestId = state.search.lastIssuedRequest + 1;
-          state.search.lastIssuedRequest = requestId;
-          updateSearchStatus('loading');
-          toggleLoading(true);
-
-          const timer = setTimeout(() => {
-            console.info('search_latency_warning', {
-              queryLength: trimmed.length,
-              requestId
-            });
-          }, 1000);
-
-          try {
-            const results = await window.spotify.search(trimmed);
-            clearTimeout(timer);
-
-            if (state.search.lastIssuedRequest !== requestId) {
-              return;
-            }
-
-            state.search.lastCompletedRequest = requestId;
-            state.search.results = results;
-            toggleLoading(false);
-            updateSearchStatus('success');
-            renderResults();
-          } catch (error) {
-            clearTimeout(timer);
-            if (state.search.lastIssuedRequest !== requestId) {
-              return;
-            }
-
-            toggleLoading(false);
-            updateSearchStatus('error', error?.message || 'Please try again.');
-            console.error('search_error', error);
-          }
-        };
-
-        let debounceTimer = null;
-        const debounceSearch = (event) => {
-          const value = event.target.value;
-          state.search.query = value;
-
-          if (debounceTimer) {
-            clearTimeout(debounceTimer);
-          }
-
-          if (!value.trim()) {
-            debounceTimer = setTimeout(() => {
-              resetSearchState();
-              toggleLoading(false);
-            }, 50);
-            return;
-          }
-
-          debounceTimer = setTimeout(() => {
-            performSearch(value);
-          }, 300);
-        };
-
-        const focusFirstResult = () => {
+      }
+
+      state.search.activeTab = 'tracks';
+    };
+
+    const closeReleaseView = ({ restoreFocus = false } = {}) => {
+      const wasActive = state.release.active;
+      state.release.active = false;
+      state.release.status = 'idle';
+      state.release.album = null;
+      state.release.albumId = null;
+      state.release.highlightTrackId = null;
+      state.release.error = null;
+
+      if (wasActive) {
+        releaseView.hidden = true;
+        releaseView.textContent = '';
+        resultsContainer.hidden = false;
+        if (restoreFocus) {
           const focusable = resultsContainer.querySelector('[data-focus-index="0"]');
           if (focusable) {
             focusable.focus();
-          }
-        };
-
-        searchInput.addEventListener('input', debounceSearch);
-        searchInput.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            if (debounceTimer) {
-              clearTimeout(debounceTimer);
-            }
-            performSearch(event.target.value);
-          } else if (event.key === 'Escape') {
-            event.preventDefault();
-            searchInput.value = '';
-            state.search.query = '';
-            resetSearchState();
-            toggleLoading(false);
-          } else if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            focusFirstResult();
-          }
-        });
-
-        resultsContainer.addEventListener('keydown', (event) => {
-          const current = event.target.closest('[data-focus-index]');
-          if (!current) {
-            return;
-          }
-
-          const currentIndex = Number(current.dataset.focusIndex);
-
-          if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            const next = resultsContainer.querySelector(`[data-focus-index="${currentIndex + 1}"]`);
-            if (next) {
-              next.focus();
-            }
-          } else if (event.key === 'ArrowUp') {
-            event.preventDefault();
-            if (currentIndex === 0) {
-              searchInput.focus();
-              return;
-            }
-            const prev = resultsContainer.querySelector(`[data-focus-index="${currentIndex - 1}"]`);
-            if (prev) {
-              prev.focus();
-            }
-          } else if (event.key === 'Escape') {
-            closeAllTrackMenus();
+          } else {
             searchInput.focus();
           }
-        });
+        }
+      }
+    };
 
-        resultsContainer.addEventListener('click', (event) => {
-          if (!resultsContainer.contains(event.target)) {
-            return;
-          }
-          if (!event.target.closest('.track-card')) {
-            closeAllTrackMenus();
-          }
-        });
+    const renderReleaseView = () => {
+      releaseView.textContent = '';
+      if (!state.release.active) {
+        releaseView.hidden = true;
+        resultsContainer.hidden = false;
+        return;
+      }
 
-        const updateForProfile = (profile) => {
-          if (!profile) {
-            return;
-          }
+      releaseView.hidden = false;
+      resultsContainer.hidden = true;
 
-          state.profile = profile;
-          const displayName = profile.display_name || profile.id || 'Spotify user';
-          welcome.textContent = `Welcome ${displayName}`;
-          welcome.hidden = false;
-          loginButton.hidden = true;
-          loginButton.disabled = false;
-          status.textContent = '';
+      const header = document.createElement('div');
+      header.className = 'release-header';
 
-          searchInput.disabled = false;
-          searchTooltip.textContent = 'Press Enter to search · Esc clears · ↑/↓ to browse results';
-          searchWrapper.dataset.enabled = 'true';
-          searchView.hidden = false;
-          resetSearchState({ announce: true });
-        };
-
-        const showLoginPrompt = (message) => {
-          welcome.hidden = true;
-          loginButton.hidden = false;
-          loginButton.disabled = false;
-          status.textContent = message;
-          searchTooltip.textContent = 'Log in to start searching.';
-          searchInput.disabled = true;
-          searchView.hidden = true;
-          clearReleaseView();
-        };
-
-        const showError = (message) => {
-          welcome.hidden = true;
-          loginButton.hidden = false;
-          loginButton.disabled = false;
-          status.textContent = message;
-          searchTooltip.textContent = message;
-          searchInput.disabled = true;
-          searchView.hidden = true;
-          clearReleaseView();
-        };
-
-        const refreshState = async () => {
-          if (!window.spotify) {
-            showError('Spotify integration is unavailable in this build.');
-            loginButton.hidden = true;
-            return;
-          }
-
-          const configured = await window.spotify.isConfigured();
-          if (!configured) {
-            showError('Set Spotify credentials (client ID, secret, redirect URI) before logging in.');
-            loginButton.hidden = true;
-            return;
-          }
-
-          const authenticated = await window.spotify.isAuthenticated();
-          if (authenticated) {
-            try {
-              const profile = await window.spotify.getCurrentUser();
-              updateForProfile(profile);
-            } catch (error) {
-              const message = error?.message || String(error);
-              showError(`Unable to load Spotify profile: ${message}`);
-            }
-          } else {
-            showLoginPrompt('Connect your Spotify account to get started.');
-          }
-        };
-
-        loginButton.addEventListener('click', async () => {
-          loginButton.disabled = true;
-          status.textContent = 'Opening Spotify login…';
-
-          try {
-            const profile = await window.spotify.login();
-            updateForProfile(profile);
-          } catch (error) {
-            const message = error?.message || String(error);
-            showError(`Spotify login failed: ${message}`);
-          }
-        });
-
-        refreshState();
+      const backButton = document.createElement('button');
+      backButton.type = 'button';
+      backButton.className = 'release-back';
+      backButton.textContent = 'Back to results';
+      backButton.addEventListener('click', () => {
+        closeReleaseView({ restoreFocus: true });
+        renderResults();
       });
-    </script>
+
+      header.appendChild(backButton);
+
+      const heading = document.createElement('h2');
+      heading.textContent = state.release.album?.name || 'Release';
+      header.appendChild(heading);
+
+      releaseView.appendChild(header);
+
+      if (state.release.status === 'loading' && !state.release.album) {
+        const statusRow = document.createElement('div');
+        statusRow.className = 'release-status';
+        statusRow.textContent = 'Loading release details…';
+        releaseView.appendChild(statusRow);
+        return;
+      }
+
+      if (state.release.status === 'error') {
+        const statusRow = document.createElement('div');
+        statusRow.className = 'release-status';
+        statusRow.textContent = `Couldn't load release details. ${state.release.error || ''}`.trim();
+        releaseView.appendChild(statusRow);
+
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'release-retry';
+        retry.textContent = 'Retry';
+        retry.addEventListener('click', () => {
+          if (state.release.albumId) {
+            openReleaseView({
+              albumId: state.release.albumId,
+              initialAlbum: state.release.album,
+              highlightTrackId: state.release.highlightTrackId
+            });
+          }
+        });
+        releaseView.appendChild(retry);
+        return;
+      }
+
+      const album = state.release.album;
+      if (!album) {
+        const statusRow = document.createElement('div');
+        statusRow.className = 'release-status';
+        statusRow.textContent = 'Release details unavailable.';
+        releaseView.appendChild(statusRow);
+        return;
+      }
+
+      const content = document.createElement('div');
+      content.className = 'release-content';
+
+      const artworkWrapper = document.createElement('div');
+      artworkWrapper.className = 'release-artwork';
+      artworkWrapper.appendChild(createImage(album.images?.[0]?.url, `${album.name} cover art`));
+      content.appendChild(artworkWrapper);
+
+      const details = document.createElement('div');
+      details.className = 'release-details';
+
+      const title = document.createElement('h3');
+      title.textContent = album.name;
+      details.appendChild(title);
+
+      const artistsLine = document.createElement('p');
+      artistsLine.textContent = summariseArtists(album.artists);
+      details.appendChild(artistsLine);
+
+      const metaLine = document.createElement('p');
+      metaLine.textContent = formatReleaseMeta(album);
+      details.appendChild(metaLine);
+
+      content.appendChild(details);
+      releaseView.appendChild(content);
+
+      const tracklist = document.createElement('div');
+      tracklist.className = 'release-tracklist';
+      const tracks = album.tracks?.items || [];
+      if (!tracks.length) {
+        const emptyTrack = document.createElement('div');
+        emptyTrack.textContent = state.release.status === 'loading'
+          ? 'Loading tracks…'
+          : 'Track listing unavailable for this release.';
+        tracklist.appendChild(emptyTrack);
+      } else {
+        tracks.forEach((track, index) => {
+          const item = document.createElement('div');
+          item.className = 'tracklist-item';
+          if (state.release.highlightTrackId && track.id === state.release.highlightTrackId) {
+            item.classList.add('highlight');
+          }
+
+          const title = document.createElement('div');
+          title.textContent = `${index + 1}. ${track.name}`;
+
+          const duration = document.createElement('span');
+          duration.textContent = formatDuration(track.duration_ms);
+
+          item.appendChild(title);
+          item.appendChild(duration);
+          tracklist.appendChild(item);
+        });
+      }
+
+      releaseView.appendChild(tracklist);
+
+      if (state.release.status === 'loading') {
+        const statusRow = document.createElement('div');
+        statusRow.className = 'release-status';
+        statusRow.textContent = 'Fetching updated tracklist…';
+        releaseView.appendChild(statusRow);
+      }
+    };
+
+    const openReleaseView = async ({ albumId, initialAlbum, highlightTrackId }) => {
+      if (!albumId) {
+        return;
+      }
+
+      const requestId = state.release.requestId + 1;
+      state.release.requestId = requestId;
+      state.release.active = true;
+      state.release.status = 'loading';
+      state.release.album = initialAlbum || null;
+      state.release.albumId = albumId;
+      state.release.highlightTrackId = highlightTrackId || null;
+      state.release.error = null;
+
+      renderReleaseView();
+
+      searchMessage.textContent = '';
+      const loadingLabel = document.createElement('strong');
+      loadingLabel.textContent = initialAlbum?.name || 'Loading release…';
+      searchMessage.appendChild(loadingLabel);
+
+      try {
+        const album = await window.spotify.getAlbum(albumId);
+        if (state.release.requestId !== requestId) {
+          return;
+        }
+
+        state.release.album = album;
+        state.release.status = 'ready';
+        renderReleaseView();
+
+        searchMessage.textContent = '';
+        const strong = document.createElement('strong');
+        strong.textContent = album.name;
+        const subtitle = document.createElement('div');
+        subtitle.textContent = summariseArtists(album.artists);
+        searchMessage.appendChild(strong);
+        searchMessage.appendChild(subtitle);
+      } catch (error) {
+        if (state.release.requestId !== requestId) {
+          return;
+        }
+
+        state.release.status = 'error';
+        state.release.error = error?.message || 'Please try again.';
+        renderReleaseView();
+
+        searchMessage.textContent = `Couldn't load release details. ${state.release.error}`.trim();
+        console.error('release_view_error', error);
+      }
+    };
+
+    const resetSearchState = ({ announce = true } = {}) => {
+      state.search.status = 'idle';
+      state.search.query = searchInput.value || '';
+      state.search.results = { tracks: [], albums: [] };
+      state.search.error = null;
+      state.search.activeTab = 'tracks';
+      resultsContainer.hidden = false;
+      resultsContainer.textContent = '';
+      closeReleaseView();
+      if (announce) {
+        renderEmptyMessage('Start typing to search the Spotify catalog.');
+      } else {
+        searchMessage.textContent = '';
+      }
+    };
+
+    const closeAllTrackMenus = () => {
+      resultsContainer
+        .querySelectorAll('.track-card')
+        .forEach((card) => {
+          card.classList.remove('track-menu-open');
+          const toggle = card.querySelector('.menu-toggle');
+          if (toggle) {
+            toggle.setAttribute('aria-expanded', 'false');
+          }
+        });
+    };
+
+    const buildTrackCard = (track, index) => {
+      const card = document.createElement('article');
+      card.className = 'result-card track-card';
+
+      const mainButton = document.createElement('button');
+      mainButton.type = 'button';
+      mainButton.className = 'result-main search-focusable';
+      mainButton.dataset.focusIndex = index;
+      mainButton.addEventListener('click', () => {
+        closeAllTrackMenus();
+        openReleaseView({
+          albumId: track.album?.id,
+          initialAlbum: track.album,
+          highlightTrackId: track.id
+        });
+        console.info('search_result_clicked', {
+          entityType: 'track',
+          action: 'view_release',
+          uri: track.uri,
+          queryLength: state.search.query.length
+        });
+      });
+
+      mainButton.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          mainButton.click();
+        }
+      });
+
+      const meta = document.createElement('div');
+      meta.className = 'result-meta';
+      const artwork = createImage(track.album?.images?.[0]?.url, `${track.name} cover art`);
+      const textGroup = document.createElement('div');
+      textGroup.className = 'text-group';
+      const title = document.createElement('strong');
+      title.textContent = track.name;
+      const subtitle = document.createElement('span');
+      subtitle.textContent = summariseArtists(track.artists);
+
+      textGroup.appendChild(title);
+      textGroup.appendChild(subtitle);
+      meta.appendChild(artwork);
+      meta.appendChild(textGroup);
+      mainButton.appendChild(meta);
+
+      const menuToggle = document.createElement('button');
+      menuToggle.type = 'button';
+      menuToggle.className = 'menu-toggle';
+      menuToggle.textContent = 'Queue';
+      menuToggle.setAttribute('aria-expanded', 'false');
+      menuToggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const willOpen = !card.classList.contains('track-menu-open');
+        closeAllTrackMenus();
+        if (willOpen) {
+          card.classList.add('track-menu-open');
+          menuToggle.setAttribute('aria-expanded', 'true');
+        }
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'result-actions';
+
+      const queueActions = [
+        { label: 'Play', action: 'play_now' },
+        { label: 'Play Next', action: 'play_next' },
+        { label: 'Add to Queue', action: 'append_queue' }
+      ];
+
+      queueActions.forEach(({ label, action }) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = label;
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
+          console.info('search_result_clicked', {
+            entityType: 'track',
+            action,
+            uri: track.uri,
+            queryLength: state.search.query.length
+          });
+          closeAllTrackMenus();
+        });
+        actions.appendChild(button);
+      });
+
+      card.appendChild(mainButton);
+      card.appendChild(menuToggle);
+      card.appendChild(actions);
+
+      return card;
+    };
+
+    const buildAlbumCard = (album, index) => {
+      const card = document.createElement('article');
+      card.className = 'result-card album-card';
+
+      const mainButton = document.createElement('button');
+      mainButton.type = 'button';
+      mainButton.className = 'result-main search-focusable';
+      mainButton.dataset.focusIndex = index;
+      mainButton.addEventListener('click', () => {
+        closeAllTrackMenus();
+        openReleaseView({
+          albumId: album.id,
+          initialAlbum: album
+        });
+        console.info('search_result_clicked', {
+          entityType: 'album',
+          action: 'view_release',
+          uri: album.uri,
+          queryLength: state.search.query.length
+        });
+      });
+
+      mainButton.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          mainButton.click();
+        }
+      });
+
+      const meta = document.createElement('div');
+      meta.className = 'result-meta';
+      const artwork = createImage(album.images?.[0]?.url, `${album.name} cover art`);
+      const textGroup = document.createElement('div');
+      textGroup.className = 'text-group';
+      const title = document.createElement('strong');
+      title.textContent = album.name;
+      const subtitle = document.createElement('span');
+      subtitle.textContent = summariseArtists(album.artists);
+
+      textGroup.appendChild(title);
+      textGroup.appendChild(subtitle);
+      meta.appendChild(artwork);
+      meta.appendChild(textGroup);
+      mainButton.appendChild(meta);
+      card.appendChild(mainButton);
+
+      return card;
+    };
+
+    const renderResults = () => {
+      resultsContainer.textContent = '';
+      closeAllTrackMenus();
+
+      if (state.search.status !== 'success') {
+        return;
+      }
+
+      ensureActiveTab();
+
+      const tablist = document.createElement('div');
+      tablist.className = 'results-tablist';
+      tablist.setAttribute('role', 'tablist');
+      tablist.setAttribute('aria-label', 'Result types');
+
+      tabs.forEach((tab, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'results-tab';
+        button.id = `results-tab-${tab.key}`;
+        button.setAttribute('role', 'tab');
+        const selected = state.search.activeTab === tab.key;
+        button.setAttribute('aria-selected', selected ? 'true' : 'false');
+        button.setAttribute('tabindex', selected ? '0' : '-1');
+        button.textContent = tab.label;
+
+        button.addEventListener('click', () => {
+          if (state.search.activeTab !== tab.key) {
+            state.search.activeTab = tab.key;
+            renderResults();
+            const activeTab = resultsContainer.querySelector(`#results-tab-${tab.key}`);
+            if (activeTab) {
+              activeTab.focus();
+            }
+          }
+        });
+
+        button.addEventListener('keydown', (event) => {
+          if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+            return;
+          }
+
+          event.preventDefault();
+          const direction = event.key === 'ArrowRight' ? 1 : -1;
+          let nextIndex = index + direction;
+          if (nextIndex < 0) {
+            nextIndex = tabs.length - 1;
+          } else if (nextIndex >= tabs.length) {
+            nextIndex = 0;
+          }
+
+          state.search.activeTab = tabs[nextIndex].key;
+          renderResults();
+          const nextTab = resultsContainer.querySelector(`#results-tab-${tabs[nextIndex].key}`);
+          if (nextTab) {
+            nextTab.focus();
+          }
+        });
+
+        tablist.appendChild(button);
+      });
+
+      resultsContainer.appendChild(tablist);
+
+      const panel = document.createElement('div');
+      panel.className = 'result-grid';
+      panel.id = `results-panel-${state.search.activeTab}`;
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', `results-tab-${state.search.activeTab}`);
+
+      const items = state.search.results[state.search.activeTab] || [];
+      if (!items.length) {
+        const empty = document.createElement('div');
+        empty.className = 'state-message';
+        const selectedTab = tabs.find((tab) => tab.key === state.search.activeTab);
+        const strong = document.createElement('strong');
+        strong.textContent = `No ${selectedTab.label.toLowerCase()} found.`;
+        empty.appendChild(strong);
+        panel.appendChild(empty);
+      } else {
+        items.forEach((item, itemIndex) => {
+          const card = state.search.activeTab === 'tracks'
+            ? buildTrackCard(item, itemIndex)
+            : buildAlbumCard(item, itemIndex);
+          panel.appendChild(card);
+        });
+      }
+
+      resultsContainer.appendChild(panel);
+
+      const totalResults =
+        (state.search.results.tracks?.length || 0) +
+        (state.search.results.albums?.length || 0);
+
+      searchMessage.textContent = '';
+      if (totalResults === 0) {
+        renderEmptyMessage('No matches found.');
+      } else {
+        const strong = document.createElement('strong');
+        strong.textContent = `${totalResults} result${totalResults === 1 ? '' : 's'} found`;
+        searchMessage.appendChild(strong);
+        if (!items.length) {
+          const hint = document.createElement('div');
+          hint.textContent = 'Try the other tab to see more results.';
+          searchMessage.appendChild(hint);
+        }
+      }
+    };
+
+    const updateSearchStatus = (status, errorMessage) => {
+      state.search.status = status;
+      state.search.error = errorMessage || null;
+
+      if (status === 'idle' && !state.search.query) {
+        renderEmptyMessage('Start typing to search the Spotify catalog.');
+        return;
+      }
+
+      if (status === 'loading') {
+        searchMessage.textContent = '';
+        const strong = document.createElement('strong');
+        strong.textContent = 'Searching…';
+        searchMessage.appendChild(strong);
+        return;
+      }
+
+      if (status === 'error') {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = 'Try again';
+        button.addEventListener('click', () => {
+          if (state.search.query) {
+            performSearch(state.search.query);
+          }
+        });
+        searchMessage.textContent = `Couldn't reach Spotify. ${errorMessage || ''}`.trim();
+        searchMessage.appendChild(button);
+        return;
+      }
+    };
+
+    const performSearch = async (query) => {
+      const trimmed = query.trim();
+      state.search.query = trimmed;
+
+      if (!trimmed) {
+        resetSearchState();
+        toggleLoading(false);
+        return;
+      }
+
+      closeReleaseView();
+
+      const requestId = state.search.lastIssuedRequest + 1;
+      state.search.lastIssuedRequest = requestId;
+      updateSearchStatus('loading');
+      toggleLoading(true);
+
+      const timer = setTimeout(() => {
+        console.info('search_latency_warning', {
+          queryLength: trimmed.length,
+          requestId
+        });
+      }, 1000);
+
+      try {
+        const results = await window.spotify.search(trimmed);
+        clearTimeout(timer);
+
+        if (state.search.lastIssuedRequest !== requestId) {
+          return;
+        }
+
+        state.search.lastCompletedRequest = requestId;
+        state.search.results = {
+          tracks: results?.tracks || [],
+          albums: results?.albums || []
+        };
+        state.search.activeTab = 'tracks';
+        toggleLoading(false);
+        updateSearchStatus('success');
+        renderResults();
+      } catch (error) {
+        clearTimeout(timer);
+        if (state.search.lastIssuedRequest !== requestId) {
+          return;
+        }
+
+        toggleLoading(false);
+        updateSearchStatus('error', error?.message || 'Please try again.');
+        console.error('search_error', error);
+      }
+    };
+
+    let debounceTimer = null;
+    const debounceSearch = (event) => {
+      const value = event.target.value;
+      state.search.query = value;
+
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+
+      if (!value.trim()) {
+        debounceTimer = setTimeout(() => {
+          resetSearchState();
+          toggleLoading(false);
+        }, 50);
+        return;
+      }
+
+      debounceTimer = setTimeout(() => {
+        performSearch(value);
+      }, 300);
+    };
+
+    const focusFirstResult = () => {
+      const focusable = resultsContainer.querySelector('[data-focus-index="0"]');
+      if (focusable) {
+        focusable.focus();
+      }
+    };
+
+    searchInput.addEventListener('input', debounceSearch);
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+        performSearch(event.target.value);
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        searchInput.value = '';
+        state.search.query = '';
+        resetSearchState();
+        toggleLoading(false);
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        focusFirstResult();
+      }
+    });
+
+    resultsContainer.addEventListener('keydown', (event) => {
+      const current = event.target.closest('[data-focus-index]');
+      if (!current) {
+        return;
+      }
+
+      const currentIndex = Number(current.dataset.focusIndex);
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        const next = resultsContainer.querySelector(`[data-focus-index="${currentIndex + 1}"]`);
+        if (next) {
+          next.focus();
+        }
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (currentIndex === 0) {
+          searchInput.focus();
+          return;
+        }
+        const prev = resultsContainer.querySelector(`[data-focus-index="${currentIndex - 1}"]`);
+        if (prev) {
+          prev.focus();
+        }
+      } else if (event.key === 'Escape') {
+        closeAllTrackMenus();
+        searchInput.focus();
+      }
+    });
+
+    resultsContainer.addEventListener('click', (event) => {
+      if (!resultsContainer.contains(event.target)) {
+        return;
+      }
+      if (!event.target.closest('.track-card')) {
+        closeAllTrackMenus();
+      }
+    });
+
+    const updateForProfile = (profile) => {
+      if (!profile) {
+        return;
+      }
+
+      state.profile = profile;
+      loginButton.hidden = true;
+      loginButton.disabled = false;
+      status.textContent = '';
+
+      searchInput.disabled = false;
+      searchTooltip.textContent = 'Press Enter to search · Esc clears · ↑/↓ to browse results';
+      searchWrapper.dataset.enabled = 'true';
+      searchView.hidden = false;
+      authView.hidden = true;
+      resetSearchState({ announce: true });
+    };
+
+    const showLoginPrompt = (message) => {
+      loginButton.hidden = false;
+      loginButton.disabled = false;
+      status.textContent = message;
+      searchTooltip.textContent = 'Log in to start searching.';
+      searchInput.disabled = true;
+      searchView.hidden = true;
+      authView.hidden = false;
+      closeReleaseView();
+    };
+
+    const showError = (message) => {
+      loginButton.hidden = false;
+      loginButton.disabled = false;
+      status.textContent = message;
+      searchTooltip.textContent = message;
+      searchInput.disabled = true;
+      searchView.hidden = true;
+      authView.hidden = false;
+      closeReleaseView();
+    };
+
+    const refreshState = async () => {
+      if (!window.spotify) {
+        showError('Spotify integration is unavailable in this build.');
+        loginButton.hidden = true;
+        return;
+      }
+
+      const configured = await window.spotify.isConfigured();
+      if (!configured) {
+        showError('Set Spotify credentials (client ID, secret, redirect URI) before logging in.');
+        loginButton.hidden = true;
+        return;
+      }
+
+      const authenticated = await window.spotify.isAuthenticated();
+      if (authenticated) {
+        try {
+          const profile = await window.spotify.getCurrentUser();
+          updateForProfile(profile);
+        } catch (error) {
+          const message = error?.message || String(error);
+          showError(`Unable to load Spotify profile: ${message}`);
+        }
+      } else {
+        showLoginPrompt('Connect your Spotify account to get started.');
+      }
+    };
+
+    loginButton.addEventListener('click', async () => {
+      loginButton.disabled = true;
+      status.textContent = 'Opening Spotify login…';
+
+      try {
+        const profile = await window.spotify.login();
+        updateForProfile(profile);
+      } catch (error) {
+        const message = error?.message || String(error);
+        showError(`Spotify login failed: ${message}`);
+      }
+    });
+
+    refreshState();
+  });
+</script>
+
   </body>
 </html>

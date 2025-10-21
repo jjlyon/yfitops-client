@@ -3,7 +3,7 @@ const { randomBytes } = require('crypto');
 const SpotifyWebApi = require('spotify-web-api-node');
 
 const DEFAULT_SCOPES = ['user-read-email', 'user-read-private'];
-const SEARCH_TYPES = ['track', 'album', 'artist'];
+const SEARCH_TYPES = ['track', 'album'];
 const SEARCH_LIMIT = 15;
 
 class SpotifyService {
@@ -237,8 +237,7 @@ class SpotifyService {
     if (!trimmedQuery) {
       return {
         tracks: [],
-        albums: [],
-        artists: []
+        albums: []
       };
     }
 
@@ -271,8 +270,7 @@ class SpotifyService {
 
       return {
         tracks: body?.tracks?.items || [],
-        albums: body?.albums?.items || [],
-        artists: body?.artists?.items || []
+        albums: body?.albums?.items || []
       };
     } catch (error) {
       if (error?.statusCode === 429 && attempt < 2) {
@@ -290,6 +288,33 @@ class SpotifyService {
       }
 
       console.error('[spotify] search_failed', {
+        message: error?.message,
+        status: error?.statusCode
+      });
+      throw error;
+    }
+  }
+
+  async getAlbum(albumId) {
+    if (!this.isConfigured()) {
+      throw new Error('Spotify credentials are not configured.');
+    }
+
+    const id = typeof albumId === 'string' ? albumId.trim() : '';
+    if (!id) {
+      throw new Error('A Spotify album ID is required.');
+    }
+
+    const hasToken = await this.ensureAccessToken();
+    if (!hasToken) {
+      throw new Error('Spotify session is not authenticated.');
+    }
+
+    try {
+      const { body } = await this.spotifyApi.getAlbum(id, { market: 'from_token' });
+      return body;
+    } catch (error) {
+      console.error('[spotify] get_album_failed', {
         message: error?.message,
         status: error?.statusCode
       });
