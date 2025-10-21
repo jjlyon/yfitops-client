@@ -3,7 +3,6 @@ import { createImage, summariseArtists, formatReleaseMeta, formatDuration } from
 
 let releaseView = null;
 let resultsContainer = null;
-let searchMessage = null;
 let searchInput = null;
 let getSpotify = null;
 let onResultsRequested = () => {};
@@ -11,14 +10,12 @@ let onResultsRequested = () => {};
 export const initReleaseView = ({
   releaseView: releaseViewElement,
   resultsContainer: resultsContainerElement,
-  searchMessage: searchMessageElement,
   searchInput: searchInputElement,
   getSpotify: getSpotifyFn,
   onResultsRequested: onResultsRequestedFn
 } = {}) => {
   releaseView = releaseViewElement;
   resultsContainer = resultsContainerElement;
-  searchMessage = searchMessageElement;
   searchInput = searchInputElement;
   getSpotify = getSpotifyFn || null;
   onResultsRequested = onResultsRequestedFn || (() => {});
@@ -90,7 +87,15 @@ export const renderReleaseView = () => {
   header.appendChild(backButton);
 
   const heading = document.createElement('h2');
-  heading.textContent = state.release.album?.name || 'Release';
+  if (state.release.album?.name) {
+    heading.textContent = state.release.album.name;
+  } else if (state.release.status === 'loading') {
+    heading.textContent = 'Loading release…';
+  } else if (state.release.status === 'error') {
+    heading.textContent = 'Release unavailable';
+  } else {
+    heading.textContent = 'Release';
+  }
   header.appendChild(heading);
 
   releaseView.appendChild(header);
@@ -207,13 +212,6 @@ export const openReleaseView = async ({ albumId, initialAlbum, highlightTrackId 
 
   renderReleaseView();
 
-  if (searchMessage) {
-    searchMessage.textContent = '';
-    const loadingLabel = document.createElement('strong');
-    loadingLabel.textContent = initialAlbum?.name || 'Loading release…';
-    searchMessage.appendChild(loadingLabel);
-  }
-
   try {
     const spotify = typeof getSpotify === 'function' ? getSpotify() : null;
     if (!spotify?.getAlbum) {
@@ -228,16 +226,6 @@ export const openReleaseView = async ({ albumId, initialAlbum, highlightTrackId 
     state.release.album = album;
     state.release.status = 'ready';
     renderReleaseView();
-
-    if (searchMessage) {
-      searchMessage.textContent = '';
-      const strong = document.createElement('strong');
-      strong.textContent = album.name;
-      const subtitle = document.createElement('div');
-      subtitle.textContent = summariseArtists(album.artists);
-      searchMessage.appendChild(strong);
-      searchMessage.appendChild(subtitle);
-    }
   } catch (error) {
     if (state.release.requestId !== requestId) {
       return;
@@ -246,10 +234,6 @@ export const openReleaseView = async ({ albumId, initialAlbum, highlightTrackId 
     state.release.status = 'error';
     state.release.error = error?.message || 'Please try again.';
     renderReleaseView();
-
-    if (searchMessage) {
-      searchMessage.textContent = `Couldn't load release details. ${state.release.error}`.trim();
-    }
     // eslint-disable-next-line no-console
     console.error('release_view_error', error);
   }
