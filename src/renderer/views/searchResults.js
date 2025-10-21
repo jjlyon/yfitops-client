@@ -291,18 +291,6 @@ export const renderResults = () => {
   });
 
   const items = state.search.results[state.search.activeTab] || [];
-
-  const summary = document.createElement('div');
-  summary.className = 'state-message';
-  const strong = document.createElement('strong');
-  strong.textContent = `${totalResults} result${totalResults === 1 ? '' : 's'} found`;
-  summary.appendChild(strong);
-  if (!items.length) {
-    const hint = document.createElement('div');
-    hint.textContent = 'Try the other tab to see more results.';
-    summary.appendChild(hint);
-  }
-  resultsContainer.appendChild(summary);
   resultsContainer.appendChild(tablist);
 
   const panel = document.createElement('div');
@@ -348,12 +336,15 @@ export const updateSearchStatus = (status, errorMessage, { onRetry } = {}) => {
   if (status === 'loading') {
     resultsContainer.hidden = false;
     resultsContainer.textContent = '';
+    const panel = document.createElement('div');
+    panel.className = 'result-grid';
     const message = document.createElement('div');
     message.className = 'state-message';
     const strong = document.createElement('strong');
     strong.textContent = 'Searching…';
     message.appendChild(strong);
-    resultsContainer.appendChild(message);
+    panel.appendChild(message);
+    resultsContainer.appendChild(panel);
     return;
   }
 
