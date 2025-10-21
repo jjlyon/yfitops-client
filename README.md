@@ -46,8 +46,26 @@ The search experience can be toggled off by setting `ENABLE_SEARCH=false` in the
 
 - `src/main.js` – Electron main process entry point responsible for creating the application window.
 - `src/preload.js` – Exposes a minimal, secure bridge for passing static metadata to the renderer along with Spotify auth helpers.
-- `src/index.html` – Renderer UI that handles login prompts and renders the global search + results experience.
+- `src/index.html` – Static renderer shell that provides markup/styles and loads the ES module entry point at `src/renderer/main.js`.
+- `src/renderer/state.js` – Shared renderer state store for the authenticated user, search requests, and release view metadata.
+- `src/renderer/auth.js` – Updates the login prompt, tooltip messaging, and toggles between the auth/search sections.
+- `src/renderer/utils.js` – Presentation helpers for formatting metadata and constructing artwork images.
+- `src/renderer/views/searchResults.js` – Renders search tabs/results, manages loading/empty/error states, and exposes keyboard helpers for the results grid.
+- `src/renderer/views/releaseView.js` – Controls the dedicated release details panel and fetches expanded album data via the preload bridge.
+- `src/renderer/main.js` – Renderer bootstrap that wires DOM events to the modules above and coordinates calls to the preload-exposed Spotify API.
 - `src/lib/spotifyService.js` – Thin wrapper around the Spotify client and OAuth library so the underlying dependencies can be
   swapped without touching the renderer. Includes catalog search helpers with basic retry handling.
 
 Feel free to build on top of this foundation to integrate authentication, playback controls, and other Spotify features.
+
+## Renderer module flow
+
+The renderer now relies on native ES modules so logic is grouped by responsibility under `src/renderer/`:
+
+1. `main.js` waits for `DOMContentLoaded`, captures DOM references, and initialises each module.
+2. `auth.js` toggles between the authentication prompt and the search workspace, delegating to `searchResults.resetSearchState` to reset UI state after login/logout.
+3. `views/searchResults.js` renders search tabs, handles keyboard interactions, and requests release details by calling into `views/releaseView.js`.
+4. `views/releaseView.js` fetches additional album data through the preload bridge (`window.spotify`) and swaps the results grid for the detailed release panel when a result is opened.
+5. Shared state (current query, profile, release metadata) lives in `state.js`, while `utils.js` houses formatting helpers reused across the views.
+
+Electron loads `src/index.html`, which now simply references `renderer/main.js`; no extra bundling step is required, so the existing `npm start` workflow continues to work unchanged.
