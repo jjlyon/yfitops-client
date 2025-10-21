@@ -9,5 +9,7 @@ contextBridge.exposeInMainWorld('spotify', {
   isConfigured: () => ipcRenderer.invoke('spotify:isConfigured'),
   isAuthenticated: () => ipcRenderer.invoke('spotify:isAuthenticated'),
   login: () => ipcRenderer.invoke('spotify:login'),
-  getCurrentUser: () => ipcRenderer.invoke('spotify:getCurrentUser')
+  getCurrentUser: () => ipcRenderer.invoke('spotify:getCurrentUser'),
+  search: (query) => ipcRenderer.invoke('spotify:search', query),
+  getAlbum: (albumId) => ipcRenderer.invoke('spotify:getAlbum', albumId)
 });

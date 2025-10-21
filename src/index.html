@@ -9,124 +9,1425 @@
         color-scheme: dark;
       }
 
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #1db954, #191414);
+        background: radial-gradient(circle at 20% 20%, rgba(29, 185, 84, 0.25), transparent 55%),
+          radial-gradient(circle at 80% 0%, rgba(30, 215, 96, 0.2), transparent 45%),
+          #121212;
         color: #ffffff;
-        display: grid;
-        place-items: center;
         min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        padding: 2rem;
       }
 
-      main {
+      .app-shell {
+        width: min(100%, 1080px);
+        background: linear-gradient(135deg, rgba(18, 18, 18, 0.92), rgba(18, 18, 18, 0.75));
+        border-radius: 24px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        backdrop-filter: blur(14px);
+        box-shadow: 0 32px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      header.topbar {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.25rem 1.75rem;
+        background: rgba(0, 0, 0, 0.35);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .brand h1 {
+        font-size: 1.5rem;
+        margin: 0;
+      }
+
+      .brand span {
+        font-size: 0.875rem;
+        opacity: 0.75;
+      }
+
+      .search-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        position: relative;
+      }
+
+      .search-input-container {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        transition: border 0.2s ease, background 0.2s ease;
+      }
+
+      .search-input-container:focus-within {
+        border: 1px solid rgba(30, 215, 96, 0.65);
+        background: rgba(12, 12, 12, 0.85);
+      }
+
+      .search-icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 0.5rem;
+        opacity: 0.65;
+      }
+
+      .search-input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        color: #ffffff;
+        font-size: 1rem;
+        outline: none;
+        min-width: 0;
+      }
+
+      .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      .search-input:disabled {
+        opacity: 0.5;
+      }
+
+      .search-tooltip {
+        font-size: 0.75rem;
+        opacity: 0.6;
+      }
+
+      .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      main.app-content {
+        padding: 1.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .auth-card {
         text-align: center;
-        max-width: 480px;
         padding: 2.5rem;
         border-radius: 1.5rem;
-        background-color: rgba(0, 0, 0, 0.55);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+        background-color: rgba(0, 0, 0, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: center;
       }
 
-      h1 {
-        font-size: 2.5rem;
-        margin-bottom: 0.75rem;
+      .auth-card button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 999px;
+        border: none;
+        background: #1db954;
+        color: #000;
+        font-weight: 600;
+        cursor: pointer;
       }
 
-      p {
+      .auth-card button[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .search-state-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .state-message {
+        padding: 2.5rem 1.5rem;
+        border-radius: 1.25rem;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        text-align: center;
+      }
+
+      .state-message button {
+        margin-top: 1rem;
+        padding: 0.65rem 1.4rem;
+        border-radius: 999px;
+        border: none;
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .state-message strong {
+        display: block;
+        font-size: 1.1rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .state-message div {
+        opacity: 0.75;
+      }
+
+      .results-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .results-tablist {
+        display: flex;
+        gap: 0.5rem;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 999px;
+        padding: 0.35rem;
+        align-self: flex-start;
+      }
+
+      .results-tab {
+        border: none;
+        border-radius: 999px;
+        padding: 0.5rem 1.1rem;
+        background: transparent;
+        color: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
+        opacity: 0.7;
+      }
+
+      .results-tab:focus-visible {
+        outline: 2px solid rgba(30, 215, 96, 0.9);
+        outline-offset: 2px;
+      }
+
+      .results-tab[aria-selected='true'] {
+        background: rgba(30, 215, 96, 0.8);
+        color: #000000;
+        opacity: 1;
+      }
+
+      .result-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .result-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        position: relative;
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+
+      .result-card:focus-within,
+      .result-card:hover {
+        transform: translateY(-2px);
+        background: rgba(30, 215, 96, 0.15);
+      }
+
+      .result-card img {
+        width: 64px;
+        height: 64px;
+        border-radius: 12px;
+        object-fit: cover;
+      }
+
+      .result-card .result-meta {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+      }
+
+      .result-card .text-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .result-card .text-group strong {
+        font-size: 1rem;
+      }
+
+      .result-card .text-group span {
+        font-size: 0.85rem;
+        opacity: 0.75;
+      }
+
+      .result-card button.result-main {
+        all: unset;
+        cursor: pointer;
+        display: flex;
+        width: 100%;
+      }
+
+      .result-card button.result-main:focus-visible {
+        outline: 2px solid rgba(30, 215, 96, 0.9);
+        outline-offset: 3px;
+      }
+
+      .result-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .result-actions button {
+        padding: 0.5rem 1rem;
+        border-radius: 999px;
+        border: none;
+        background: rgba(0, 0, 0, 0.35);
+        color: #ffffff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .track-card {
+        position: relative;
+      }
+
+      .track-card .menu-toggle {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        border: none;
+        border-radius: 999px;
+        padding: 0.35rem 0.75rem;
+        background: rgba(0, 0, 0, 0.45);
+        color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        opacity: 0.8;
+      }
+
+      .track-card .menu-toggle:focus-visible,
+      .track-card.track-menu-open .menu-toggle {
+        outline: 2px solid rgba(30, 215, 96, 0.9);
+        outline-offset: 2px;
+        opacity: 1;
+      }
+
+      .track-card .result-actions {
+        display: none;
+      }
+
+      .track-card.track-menu-open .result-actions {
+        display: flex;
+      }
+
+      .result-actions button:hover,
+      .result-actions button:focus-visible {
+        background: rgba(30, 215, 96, 0.65);
+        color: #000000;
+      }
+
+      .release-view {
+        margin-top: 1rem;
+        padding: 1.5rem;
+        border-radius: 1.25rem;
+        background: rgba(0, 0, 0, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .release-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .release-back,
+      .release-retry {
+        border: none;
+        border-radius: 999px;
+        padding: 0.5rem 1.1rem;
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .release-back:focus-visible,
+      .release-back:hover,
+      .release-retry:focus-visible,
+      .release-retry:hover {
+        background: rgba(30, 215, 96, 0.65);
+        color: #000000;
+      }
+
+      .release-content {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 1.5rem;
+      }
+
+      .release-artwork img {
+        width: 200px;
+        height: 200px;
+        border-radius: 1.25rem;
+        object-fit: cover;
+      }
+
+      .release-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .release-details h3 {
         margin: 0;
-        line-height: 1.6;
+        font-size: 1.75rem;
+      }
+
+      .release-details p {
+        margin: 0;
+        opacity: 0.8;
+      }
+
+      .release-tracklist {
+        background: rgba(0, 0, 0, 0.35);
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-height: 280px;
+        overflow-y: auto;
+      }
+
+      .tracklist-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        border-radius: 0.75rem;
+        padding: 0.6rem 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .tracklist-item.highlight {
+        background: rgba(30, 215, 96, 0.25);
+      }
+
+      .tracklist-item span {
+        opacity: 0.75;
+        font-size: 0.85rem;
+      }
+
+      .release-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        opacity: 0.8;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          padding: 1rem;
+        }
+
+        header.topbar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .brand {
+          align-items: center;
+        }
+
+        .search-tooltip {
+          text-align: center;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .app-shell {
+          border-radius: 16px;
+        }
+
+        .result-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .release-view {
+          text-align: center;
+        }
+
+        .release-content {
+          grid-template-columns: 1fr;
+        }
+
+        .release-artwork img {
+          margin: 0 auto;
+        }
+
+        .release-tracklist {
+          max-height: none;
+        }
       }
     </style>
   </head>
   <body>
-    <main>
-      <h1>YFitOps Player</h1>
-      <p id="welcome" hidden>Welcome!</p>
-      <p id="status">Checking Spotify login status…</p>
-      <button id="spotifyLogin" hidden>Log in with Spotify</button>
-    </main>
-    <script>
-      window.addEventListener('DOMContentLoaded', () => {
-        const info = window.appInfo;
-        if (info) {
-          document.title = info.name;
+    <div class="app-shell" role="application">
+      <header class="topbar">
+        <div class="brand">
+          <h1>YFitOps Player</h1>
+          <span id="brandSubtitle">Stay queued on what matters.</span>
+        </div>
+        <div class="search-wrapper" id="searchWrapper">
+          <label class="sr-only" for="globalSearchInput">Search Spotify</label>
+          <div class="search-input-container">
+            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M15.5 14h-.79l-.28-.27a6.471 6.471 0 0 0 1.57-4.23C15.99 6.02 13 3 9.5 3S3 6.02 3 9.5 6.02 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+              ></path>
+            </svg>
+            <input
+              id="globalSearchInput"
+              class="search-input"
+              type="search"
+              placeholder="Search songs or releases…"
+              autocomplete="off"
+              spellcheck="false"
+              title="Press Enter to search"
+              aria-label="Search Spotify"
+              disabled
+            />
+            <span id="searchSpinner" class="spinner" role="status" aria-live="polite" hidden></span>
+          </div>
+          <div class="search-tooltip" id="searchTooltip">Log in to start searching.</div>
+        </div>
+      </header>
+      <main class="app-content" id="appContent">
+        <section id="authView" class="auth-card" aria-live="polite">
+          <p id="status">Checking Spotify login status…</p>
+          <button id="spotifyLogin" hidden>Log in with Spotify</button>
+        </section>
+        <section id="searchView" class="search-state-panel" hidden aria-live="polite">
+          <div id="searchMessage" class="state-message" role="status"></div>
+          <div id="resultsContainer" class="results-container" role="region" aria-label="Search results"></div>
+          <div id="releaseView" class="release-view" hidden aria-live="polite" aria-label="Release details"></div>
+        </section>
+      </main>
+    </div>
+    
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const info = window.appInfo;
+    if (info) {
+      document.title = info.name;
+    }
+
+    const status = document.getElementById('status');
+    const loginButton = document.getElementById('spotifyLogin');
+    const searchInput = document.getElementById('globalSearchInput');
+    const searchSpinner = document.getElementById('searchSpinner');
+    const searchWrapper = document.getElementById('searchWrapper');
+    const searchTooltip = document.getElementById('searchTooltip');
+    const searchMessage = document.getElementById('searchMessage');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const searchView = document.getElementById('searchView');
+    const authView = document.getElementById('authView');
+    const releaseView = document.getElementById('releaseView');
+
+    const tabs = [
+      { key: 'tracks', label: 'Tracks' },
+      { key: 'albums', label: 'Albums & EPs' }
+    ];
+
+    const state = {
+      profile: null,
+      search: {
+        query: '',
+        status: 'idle',
+        activeTab: 'tracks',
+        results: { tracks: [], albums: [] },
+        error: null,
+        lastIssuedRequest: 0,
+        lastCompletedRequest: 0
+      },
+      release: {
+        active: false,
+        status: 'idle',
+        album: null,
+        albumId: null,
+        highlightTrackId: null,
+        requestId: 0,
+        error: null
+      }
+    };
+
+    const summariseArtists = (artists = []) => artists.map((artist) => artist.name).join(', ');
+
+    const createImage = (url, alt) => {
+      const img = document.createElement('img');
+      img.src = url || 'https://via.placeholder.com/200?text=Spotify';
+      img.alt = alt;
+      return img;
+    };
+
+    const formatReleaseType = (album) => {
+      const type = album?.album_type;
+      if (!type) {
+        return 'Release';
+      }
+      return type.charAt(0).toUpperCase() + type.slice(1);
+    };
+
+    const formatReleaseMeta = (album) => {
+      const parts = [];
+      const releaseType = formatReleaseType(album);
+      if (releaseType) {
+        parts.push(releaseType);
+      }
+      if (album?.release_date) {
+        parts.push(album.release_date);
+      }
+      if (typeof album?.total_tracks === 'number') {
+        const trackCount = album.total_tracks;
+        parts.push(`${trackCount} track${trackCount === 1 ? '' : 's'}`);
+      }
+      return parts.join(' • ');
+    };
+
+    const formatDuration = (ms) => {
+      if (!Number.isFinite(ms)) {
+        return '';
+      }
+      const totalSeconds = Math.round(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${String(seconds).padStart(2, '0')}`;
+    };
+
+    const renderEmptyMessage = (message) => {
+      searchMessage.textContent = '';
+      const strong = document.createElement('strong');
+      strong.textContent = message;
+      searchMessage.appendChild(strong);
+    };
+
+    const toggleLoading = (loading) => {
+      searchSpinner.hidden = !loading;
+      searchInput.setAttribute('aria-busy', loading ? 'true' : 'false');
+    };
+
+    const ensureActiveTab = () => {
+      const currentItems = state.search.results[state.search.activeTab] || [];
+      if (currentItems.length > 0) {
+        return;
+      }
+
+      for (const tab of tabs) {
+        if ((state.search.results[tab.key] || []).length > 0) {
+          state.search.activeTab = tab.key;
+          return;
+        }
+      }
+
+      state.search.activeTab = 'tracks';
+    };
+
+    const closeReleaseView = ({ restoreFocus = false } = {}) => {
+      const wasActive = state.release.active;
+      state.release.active = false;
+      state.release.status = 'idle';
+      state.release.album = null;
+      state.release.albumId = null;
+      state.release.highlightTrackId = null;
+      state.release.error = null;
+
+      if (wasActive) {
+        releaseView.hidden = true;
+        releaseView.textContent = '';
+        resultsContainer.hidden = false;
+        if (restoreFocus) {
+          const focusable = resultsContainer.querySelector('[data-focus-index="0"]');
+          if (focusable) {
+            focusable.focus();
+          } else {
+            searchInput.focus();
+          }
+        }
+      }
+    };
+
+    const renderReleaseView = () => {
+      releaseView.textContent = '';
+      if (!state.release.active) {
+        releaseView.hidden = true;
+        resultsContainer.hidden = false;
+        return;
+      }
+
+      releaseView.hidden = false;
+      resultsContainer.hidden = true;
+
+      const header = document.createElement('div');
+      header.className = 'release-header';
+
+      const backButton = document.createElement('button');
+      backButton.type = 'button';
+      backButton.className = 'release-back';
+      backButton.textContent = 'Back to results';
+      backButton.addEventListener('click', () => {
+        closeReleaseView({ restoreFocus: true });
+        renderResults();
+      });
+
+      header.appendChild(backButton);
+
+      const heading = document.createElement('h2');
+      heading.textContent = state.release.album?.name || 'Release';
+      header.appendChild(heading);
+
+      releaseView.appendChild(header);
+
+      if (state.release.status === 'loading' && !state.release.album) {
+        const statusRow = document.createElement('div');
+        statusRow.className = 'release-status';
+        statusRow.textContent = 'Loading release details…';
+        releaseView.appendChild(statusRow);
+        return;
+      }
+
+      if (state.release.status === 'error') {
+        const statusRow = document.createElement('div');
+        statusRow.className = 'release-status';
+        statusRow.textContent = `Couldn't load release details. ${state.release.error || ''}`.trim();
+        releaseView.appendChild(statusRow);
+
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'release-retry';
+        retry.textContent = 'Retry';
+        retry.addEventListener('click', () => {
+          if (state.release.albumId) {
+            openReleaseView({
+              albumId: state.release.albumId,
+              initialAlbum: state.release.album,
+              highlightTrackId: state.release.highlightTrackId
+            });
+          }
+        });
+        releaseView.appendChild(retry);
+        return;
+      }
+
+      const album = state.release.album;
+      if (!album) {
+        const statusRow = document.createElement('div');
+        statusRow.className = 'release-status';
+        statusRow.textContent = 'Release details unavailable.';
+        releaseView.appendChild(statusRow);
+        return;
+      }
+
+      const content = document.createElement('div');
+      content.className = 'release-content';
+
+      const artworkWrapper = document.createElement('div');
+      artworkWrapper.className = 'release-artwork';
+      artworkWrapper.appendChild(createImage(album.images?.[0]?.url, `${album.name} cover art`));
+      content.appendChild(artworkWrapper);
+
+      const details = document.createElement('div');
+      details.className = 'release-details';
+
+      const title = document.createElement('h3');
+      title.textContent = album.name;
+      details.appendChild(title);
+
+      const artistsLine = document.createElement('p');
+      artistsLine.textContent = summariseArtists(album.artists);
+      details.appendChild(artistsLine);
+
+      const metaLine = document.createElement('p');
+      metaLine.textContent = formatReleaseMeta(album);
+      details.appendChild(metaLine);
+
+      content.appendChild(details);
+      releaseView.appendChild(content);
+
+      const tracklist = document.createElement('div');
+      tracklist.className = 'release-tracklist';
+      const tracks = album.tracks?.items || [];
+      if (!tracks.length) {
+        const emptyTrack = document.createElement('div');
+        emptyTrack.textContent = state.release.status === 'loading'
+          ? 'Loading tracks…'
+          : 'Track listing unavailable for this release.';
+        tracklist.appendChild(emptyTrack);
+      } else {
+        tracks.forEach((track, index) => {
+          const item = document.createElement('div');
+          item.className = 'tracklist-item';
+          if (state.release.highlightTrackId && track.id === state.release.highlightTrackId) {
+            item.classList.add('highlight');
+          }
+
+          const title = document.createElement('div');
+          title.textContent = `${index + 1}. ${track.name}`;
+
+          const duration = document.createElement('span');
+          duration.textContent = formatDuration(track.duration_ms);
+
+          item.appendChild(title);
+          item.appendChild(duration);
+          tracklist.appendChild(item);
+        });
+      }
+
+      releaseView.appendChild(tracklist);
+
+      if (state.release.status === 'loading') {
+        const statusRow = document.createElement('div');
+        statusRow.className = 'release-status';
+        statusRow.textContent = 'Fetching updated tracklist…';
+        releaseView.appendChild(statusRow);
+      }
+    };
+
+    const openReleaseView = async ({ albumId, initialAlbum, highlightTrackId }) => {
+      if (!albumId) {
+        return;
+      }
+
+      const requestId = state.release.requestId + 1;
+      state.release.requestId = requestId;
+      state.release.active = true;
+      state.release.status = 'loading';
+      state.release.album = initialAlbum || null;
+      state.release.albumId = albumId;
+      state.release.highlightTrackId = highlightTrackId || null;
+      state.release.error = null;
+
+      renderReleaseView();
+
+      searchMessage.textContent = '';
+      const loadingLabel = document.createElement('strong');
+      loadingLabel.textContent = initialAlbum?.name || 'Loading release…';
+      searchMessage.appendChild(loadingLabel);
+
+      try {
+        const album = await window.spotify.getAlbum(albumId);
+        if (state.release.requestId !== requestId) {
+          return;
         }
 
-        const welcome = document.getElementById('welcome');
-        const status = document.getElementById('status');
-        const loginButton = document.getElementById('spotifyLogin');
+        state.release.album = album;
+        state.release.status = 'ready';
+        renderReleaseView();
 
-        const updateForProfile = (profile) => {
-          if (!profile) {
-            return;
+        searchMessage.textContent = '';
+        const strong = document.createElement('strong');
+        strong.textContent = album.name;
+        const subtitle = document.createElement('div');
+        subtitle.textContent = summariseArtists(album.artists);
+        searchMessage.appendChild(strong);
+        searchMessage.appendChild(subtitle);
+      } catch (error) {
+        if (state.release.requestId !== requestId) {
+          return;
+        }
+
+        state.release.status = 'error';
+        state.release.error = error?.message || 'Please try again.';
+        renderReleaseView();
+
+        searchMessage.textContent = `Couldn't load release details. ${state.release.error}`.trim();
+        console.error('release_view_error', error);
+      }
+    };
+
+    const resetSearchState = ({ announce = true } = {}) => {
+      state.search.status = 'idle';
+      state.search.query = searchInput.value || '';
+      state.search.results = { tracks: [], albums: [] };
+      state.search.error = null;
+      state.search.activeTab = 'tracks';
+      resultsContainer.hidden = false;
+      resultsContainer.textContent = '';
+      closeReleaseView();
+      if (announce) {
+        renderEmptyMessage('Start typing to search the Spotify catalog.');
+      } else {
+        searchMessage.textContent = '';
+      }
+    };
+
+    const closeAllTrackMenus = () => {
+      resultsContainer
+        .querySelectorAll('.track-card')
+        .forEach((card) => {
+          card.classList.remove('track-menu-open');
+          const toggle = card.querySelector('.menu-toggle');
+          if (toggle) {
+            toggle.setAttribute('aria-expanded', 'false');
           }
+        });
+    };
 
-          const displayName = profile.display_name || profile.id || 'Spotify user';
-          welcome.textContent = `Welcome ${displayName}`;
-          welcome.hidden = false;
-          loginButton.hidden = true;
-          loginButton.disabled = false;
-          status.textContent = '';
-        };
+    const buildTrackCard = (track, index) => {
+      const card = document.createElement('article');
+      card.className = 'result-card track-card';
 
-        const showLoginPrompt = (message) => {
-          welcome.hidden = true;
-          loginButton.hidden = false;
-          loginButton.disabled = false;
-          status.textContent = message;
-        };
+      const mainButton = document.createElement('button');
+      mainButton.type = 'button';
+      mainButton.className = 'result-main search-focusable';
+      mainButton.dataset.focusIndex = index;
+      mainButton.addEventListener('click', () => {
+        closeAllTrackMenus();
+        openReleaseView({
+          albumId: track.album?.id,
+          initialAlbum: track.album,
+          highlightTrackId: track.id
+        });
+        console.info('search_result_clicked', {
+          entityType: 'track',
+          action: 'view_release',
+          uri: track.uri,
+          queryLength: state.search.query.length
+        });
+      });
 
-        const showError = (message) => {
-          welcome.hidden = true;
-          loginButton.hidden = false;
-          loginButton.disabled = false;
-          status.textContent = message;
-        };
+      mainButton.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          mainButton.click();
+        }
+      });
 
-        const refreshState = async () => {
-          if (!window.spotify) {
-            showError('Spotify integration is unavailable in this build.');
-            loginButton.hidden = true;
-            return;
-          }
+      const meta = document.createElement('div');
+      meta.className = 'result-meta';
+      const artwork = createImage(track.album?.images?.[0]?.url, `${track.name} cover art`);
+      const textGroup = document.createElement('div');
+      textGroup.className = 'text-group';
+      const title = document.createElement('strong');
+      title.textContent = track.name;
+      const subtitle = document.createElement('span');
+      subtitle.textContent = summariseArtists(track.artists);
 
-          const configured = await window.spotify.isConfigured();
-          if (!configured) {
-            showError('Set Spotify credentials (client ID, secret, redirect URI) before logging in.');
-            loginButton.hidden = true;
-            return;
-          }
+      textGroup.appendChild(title);
+      textGroup.appendChild(subtitle);
+      meta.appendChild(artwork);
+      meta.appendChild(textGroup);
+      mainButton.appendChild(meta);
 
-          const authenticated = await window.spotify.isAuthenticated();
-          if (authenticated) {
-            try {
-              const profile = await window.spotify.getCurrentUser();
-              updateForProfile(profile);
-            } catch (error) {
-              const message = error?.message || String(error);
-              showError(`Unable to load Spotify profile: ${message}`);
+      const menuToggle = document.createElement('button');
+      menuToggle.type = 'button';
+      menuToggle.className = 'menu-toggle';
+      menuToggle.textContent = 'Queue';
+      menuToggle.setAttribute('aria-expanded', 'false');
+      menuToggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const willOpen = !card.classList.contains('track-menu-open');
+        closeAllTrackMenus();
+        if (willOpen) {
+          card.classList.add('track-menu-open');
+          menuToggle.setAttribute('aria-expanded', 'true');
+        }
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'result-actions';
+
+      const queueActions = [
+        { label: 'Play', action: 'play_now' },
+        { label: 'Play Next', action: 'play_next' },
+        { label: 'Add to Queue', action: 'append_queue' }
+      ];
+
+      queueActions.forEach(({ label, action }) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = label;
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
+          console.info('search_result_clicked', {
+            entityType: 'track',
+            action,
+            uri: track.uri,
+            queryLength: state.search.query.length
+          });
+          closeAllTrackMenus();
+        });
+        actions.appendChild(button);
+      });
+
+      card.appendChild(mainButton);
+      card.appendChild(menuToggle);
+      card.appendChild(actions);
+
+      return card;
+    };
+
+    const buildAlbumCard = (album, index) => {
+      const card = document.createElement('article');
+      card.className = 'result-card album-card';
+
+      const mainButton = document.createElement('button');
+      mainButton.type = 'button';
+      mainButton.className = 'result-main search-focusable';
+      mainButton.dataset.focusIndex = index;
+      mainButton.addEventListener('click', () => {
+        closeAllTrackMenus();
+        openReleaseView({
+          albumId: album.id,
+          initialAlbum: album
+        });
+        console.info('search_result_clicked', {
+          entityType: 'album',
+          action: 'view_release',
+          uri: album.uri,
+          queryLength: state.search.query.length
+        });
+      });
+
+      mainButton.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          mainButton.click();
+        }
+      });
+
+      const meta = document.createElement('div');
+      meta.className = 'result-meta';
+      const artwork = createImage(album.images?.[0]?.url, `${album.name} cover art`);
+      const textGroup = document.createElement('div');
+      textGroup.className = 'text-group';
+      const title = document.createElement('strong');
+      title.textContent = album.name;
+      const subtitle = document.createElement('span');
+      subtitle.textContent = summariseArtists(album.artists);
+
+      textGroup.appendChild(title);
+      textGroup.appendChild(subtitle);
+      meta.appendChild(artwork);
+      meta.appendChild(textGroup);
+      mainButton.appendChild(meta);
+      card.appendChild(mainButton);
+
+      return card;
+    };
+
+    const renderResults = () => {
+      resultsContainer.textContent = '';
+      closeAllTrackMenus();
+
+      if (state.search.status !== 'success') {
+        return;
+      }
+
+      ensureActiveTab();
+
+      const tablist = document.createElement('div');
+      tablist.className = 'results-tablist';
+      tablist.setAttribute('role', 'tablist');
+      tablist.setAttribute('aria-label', 'Result types');
+
+      tabs.forEach((tab, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'results-tab';
+        button.id = `results-tab-${tab.key}`;
+        button.setAttribute('role', 'tab');
+        const selected = state.search.activeTab === tab.key;
+        button.setAttribute('aria-selected', selected ? 'true' : 'false');
+        button.setAttribute('tabindex', selected ? '0' : '-1');
+        button.textContent = tab.label;
+
+        button.addEventListener('click', () => {
+          if (state.search.activeTab !== tab.key) {
+            state.search.activeTab = tab.key;
+            renderResults();
+            const activeTab = resultsContainer.querySelector(`#results-tab-${tab.key}`);
+            if (activeTab) {
+              activeTab.focus();
             }
-          } else {
-            showLoginPrompt('Connect your Spotify account to get started.');
-          }
-        };
-
-        loginButton.addEventListener('click', async () => {
-          loginButton.disabled = true;
-          status.textContent = 'Opening Spotify login…';
-
-          try {
-            const profile = await window.spotify.login();
-            updateForProfile(profile);
-          } catch (error) {
-            const message = error?.message || String(error);
-            showError(`Spotify login failed: ${message}`);
           }
         });
 
-        refreshState();
+        button.addEventListener('keydown', (event) => {
+          if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+            return;
+          }
+
+          event.preventDefault();
+          const direction = event.key === 'ArrowRight' ? 1 : -1;
+          let nextIndex = index + direction;
+          if (nextIndex < 0) {
+            nextIndex = tabs.length - 1;
+          } else if (nextIndex >= tabs.length) {
+            nextIndex = 0;
+          }
+
+          state.search.activeTab = tabs[nextIndex].key;
+          renderResults();
+          const nextTab = resultsContainer.querySelector(`#results-tab-${tabs[nextIndex].key}`);
+          if (nextTab) {
+            nextTab.focus();
+          }
+        });
+
+        tablist.appendChild(button);
       });
-    </script>
+
+      resultsContainer.appendChild(tablist);
+
+      const panel = document.createElement('div');
+      panel.className = 'result-grid';
+      panel.id = `results-panel-${state.search.activeTab}`;
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', `results-tab-${state.search.activeTab}`);
+
+      const items = state.search.results[state.search.activeTab] || [];
+      if (!items.length) {
+        const empty = document.createElement('div');
+        empty.className = 'state-message';
+        const selectedTab = tabs.find((tab) => tab.key === state.search.activeTab);
+        const strong = document.createElement('strong');
+        strong.textContent = `No ${selectedTab.label.toLowerCase()} found.`;
+        empty.appendChild(strong);
+        panel.appendChild(empty);
+      } else {
+        items.forEach((item, itemIndex) => {
+          const card = state.search.activeTab === 'tracks'
+            ? buildTrackCard(item, itemIndex)
+            : buildAlbumCard(item, itemIndex);
+          panel.appendChild(card);
+        });
+      }
+
+      resultsContainer.appendChild(panel);
+
+      const totalResults =
+        (state.search.results.tracks?.length || 0) +
+        (state.search.results.albums?.length || 0);
+
+      searchMessage.textContent = '';
+      if (totalResults === 0) {
+        renderEmptyMessage('No matches found.');
+      } else {
+        const strong = document.createElement('strong');
+        strong.textContent = `${totalResults} result${totalResults === 1 ? '' : 's'} found`;
+        searchMessage.appendChild(strong);
+        if (!items.length) {
+          const hint = document.createElement('div');
+          hint.textContent = 'Try the other tab to see more results.';
+          searchMessage.appendChild(hint);
+        }
+      }
+    };
+
+    const updateSearchStatus = (status, errorMessage) => {
+      state.search.status = status;
+      state.search.error = errorMessage || null;
+
+      if (status === 'idle' && !state.search.query) {
+        renderEmptyMessage('Start typing to search the Spotify catalog.');
+        return;
+      }
+
+      if (status === 'loading') {
+        searchMessage.textContent = '';
+        const strong = document.createElement('strong');
+        strong.textContent = 'Searching…';
+        searchMessage.appendChild(strong);
+        return;
+      }
+
+      if (status === 'error') {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = 'Try again';
+        button.addEventListener('click', () => {
+          if (state.search.query) {
+            performSearch(state.search.query);
+          }
+        });
+        searchMessage.textContent = `Couldn't reach Spotify. ${errorMessage || ''}`.trim();
+        searchMessage.appendChild(button);
+        return;
+      }
+    };
+
+    const performSearch = async (query) => {
+      const trimmed = query.trim();
+      state.search.query = trimmed;
+
+      if (!trimmed) {
+        resetSearchState();
+        toggleLoading(false);
+        return;
+      }
+
+      closeReleaseView();
+
+      const requestId = state.search.lastIssuedRequest + 1;
+      state.search.lastIssuedRequest = requestId;
+      updateSearchStatus('loading');
+      toggleLoading(true);
+
+      const timer = setTimeout(() => {
+        console.info('search_latency_warning', {
+          queryLength: trimmed.length,
+          requestId
+        });
+      }, 1000);
+
+      try {
+        const results = await window.spotify.search(trimmed);
+        clearTimeout(timer);
+
+        if (state.search.lastIssuedRequest !== requestId) {
+          return;
+        }
+
+        state.search.lastCompletedRequest = requestId;
+        state.search.results = {
+          tracks: results?.tracks || [],
+          albums: results?.albums || []
+        };
+        state.search.activeTab = 'tracks';
+        toggleLoading(false);
+        updateSearchStatus('success');
+        renderResults();
+      } catch (error) {
+        clearTimeout(timer);
+        if (state.search.lastIssuedRequest !== requestId) {
+          return;
+        }
+
+        toggleLoading(false);
+        updateSearchStatus('error', error?.message || 'Please try again.');
+        console.error('search_error', error);
+      }
+    };
+
+    let debounceTimer = null;
+    const debounceSearch = (event) => {
+      const value = event.target.value;
+      state.search.query = value;
+
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+
+      if (!value.trim()) {
+        debounceTimer = setTimeout(() => {
+          resetSearchState();
+          toggleLoading(false);
+        }, 50);
+        return;
+      }
+
+      debounceTimer = setTimeout(() => {
+        performSearch(value);
+      }, 300);
+    };
+
+    const focusFirstResult = () => {
+      const focusable = resultsContainer.querySelector('[data-focus-index="0"]');
+      if (focusable) {
+        focusable.focus();
+      }
+    };
+
+    searchInput.addEventListener('input', debounceSearch);
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+        performSearch(event.target.value);
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        searchInput.value = '';
+        state.search.query = '';
+        resetSearchState();
+        toggleLoading(false);
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        focusFirstResult();
+      }
+    });
+
+    resultsContainer.addEventListener('keydown', (event) => {
+      const current = event.target.closest('[data-focus-index]');
+      if (!current) {
+        return;
+      }
+
+      const currentIndex = Number(current.dataset.focusIndex);
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        const next = resultsContainer.querySelector(`[data-focus-index="${currentIndex + 1}"]`);
+        if (next) {
+          next.focus();
+        }
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (currentIndex === 0) {
+          searchInput.focus();
+          return;
+        }
+        const prev = resultsContainer.querySelector(`[data-focus-index="${currentIndex - 1}"]`);
+        if (prev) {
+          prev.focus();
+        }
+      } else if (event.key === 'Escape') {
+        closeAllTrackMenus();
+        searchInput.focus();
+      }
+    });
+
+    resultsContainer.addEventListener('click', (event) => {
+      if (!resultsContainer.contains(event.target)) {
+        return;
+      }
+      if (!event.target.closest('.track-card')) {
+        closeAllTrackMenus();
+      }
+    });
+
+    const updateForProfile = (profile) => {
+      if (!profile) {
+        return;
+      }
+
+      state.profile = profile;
+      loginButton.hidden = true;
+      loginButton.disabled = false;
+      status.textContent = '';
+
+      searchInput.disabled = false;
+      searchTooltip.textContent = 'Press Enter to search · Esc clears · ↑/↓ to browse results';
+      searchWrapper.dataset.enabled = 'true';
+      searchView.hidden = false;
+      authView.hidden = true;
+      resetSearchState({ announce: true });
+    };
+
+    const showLoginPrompt = (message) => {
+      loginButton.hidden = false;
+      loginButton.disabled = false;
+      status.textContent = message;
+      searchTooltip.textContent = 'Log in to start searching.';
+      searchInput.disabled = true;
+      searchView.hidden = true;
+      authView.hidden = false;
+      closeReleaseView();
+    };
+
+    const showError = (message) => {
+      loginButton.hidden = false;
+      loginButton.disabled = false;
+      status.textContent = message;
+      searchTooltip.textContent = message;
+      searchInput.disabled = true;
+      searchView.hidden = true;
+      authView.hidden = false;
+      closeReleaseView();
+    };
+
+    const refreshState = async () => {
+      if (!window.spotify) {
+        showError('Spotify integration is unavailable in this build.');
+        loginButton.hidden = true;
+        return;
+      }
+
+      const configured = await window.spotify.isConfigured();
+      if (!configured) {
+        showError('Set Spotify credentials (client ID, secret, redirect URI) before logging in.');
+        loginButton.hidden = true;
+        return;
+      }
+
+      const authenticated = await window.spotify.isAuthenticated();
+      if (authenticated) {
+        try {
+          const profile = await window.spotify.getCurrentUser();
+          updateForProfile(profile);
+        } catch (error) {
+          const message = error?.message || String(error);
+          showError(`Unable to load Spotify profile: ${message}`);
+        }
+      } else {
+        showLoginPrompt('Connect your Spotify account to get started.');
+      }
+    };
+
+    loginButton.addEventListener('click', async () => {
+      loginButton.disabled = true;
+      status.textContent = 'Opening Spotify login…';
+
+      try {
+        const profile = await window.spotify.login();
+        updateForProfile(profile);
+      } catch (error) {
+        const message = error?.message || String(error);
+        showError(`Spotify login failed: ${message}`);
+      }
+    });
+
+    refreshState();
+  });
+</script>
+
   </body>
 </html>

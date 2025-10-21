@@ -3,6 +3,8 @@ require('dotenv').config();
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { SpotifyService } = require('./lib/spotifyService');
 
+const enableSearch = process.env.ENABLE_SEARCH ? process.env.ENABLE_SEARCH !== 'false' : true;
+
 const spotifyService = new SpotifyService({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -40,6 +42,22 @@ ipcMain.handle('spotify:login', async () => {
 
 ipcMain.handle('spotify:getCurrentUser', async () => {
   return spotifyService.getCurrentUserProfile();
+});
+
+ipcMain.handle('spotify:search', async (_event, query) => {
+  if (!enableSearch) {
+    throw new Error('Global search is currently disabled.');
+  }
+
+  return spotifyService.searchCatalog(query);
+});
+
+ipcMain.handle('spotify:getAlbum', async (_event, albumId) => {
+  if (!enableSearch) {
+    throw new Error('Global search is currently disabled.');
+  }
+
+  return spotifyService.getAlbum(albumId);
 });
 
 app.whenReady().then(() => {
