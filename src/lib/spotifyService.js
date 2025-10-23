@@ -2,9 +2,18 @@ const { BrowserWindow } = require('electron');
 const { randomBytes } = require('crypto');
 const SpotifyWebApi = require('spotify-web-api-node');
 
-const DEFAULT_SCOPES = ['user-read-email', 'user-read-private'];
+const DEFAULT_SCOPES = [
+  'user-read-email',
+  'user-read-private',
+  'playlist-read-private',
+  'playlist-modify-private',
+  'user-read-playback-state'
+];
 const SEARCH_TYPES = ['track', 'album'];
 const SEARCH_LIMIT = 15;
+const QUEUE_PLAYLIST_NAME = 'YFitOps Queue';
+const QUEUE_PLAYLIST_DESCRIPTION = 'Private queue managed by YFitOps.';
+const PLAYLIST_PAGE_LIMIT = 50;
 
 class SpotifyService {
   constructor(config = {}) {
@@ -22,6 +31,8 @@ class SpotifyService {
     }
 
     this.tokenInfo = null;
+    this.currentUserProfile = null;
+    this.queuePlaylistId = null;
   }
 
   isConfigured() {
@@ -180,6 +191,8 @@ class SpotifyService {
   storeToken(token) {
     if (!token) {
       this.tokenInfo = null;
+      this.currentUserProfile = null;
+      this.queuePlaylistId = null;
       return;
     }
 
@@ -196,6 +209,9 @@ class SpotifyService {
     if (this.tokenInfo.refreshToken) {
       this.spotifyApi.setRefreshToken(this.tokenInfo.refreshToken);
     }
+
+    this.currentUserProfile = null;
+    this.queuePlaylistId = null;
   }
 
   async refreshAccessToken() {
@@ -224,8 +240,342 @@ class SpotifyService {
       throw new Error('Spotify session is not authenticated.');
     }
 
+    if (this.currentUserProfile) {
+      return this.currentUserProfile;
+    }
+
     const { body } = await this.spotifyApi.getMe();
+    this.currentUserProfile = body;
     return body;
+  }
+
+  async ensureQueuePlaylist() {
+    if (!this.isConfigured()) {
+      throw new Error('Spotify credentials are not configured.');
+    }
+
+    const hasToken = await this.ensureAccessToken();
+    if (!hasToken) {
+      throw new Error('Spotify session is not authenticated.');
+    }
+
+    if (this.queuePlaylistId) {
+      return this.queuePlaylistId;
+    }
+
+    const profile = await this.getCurrentUserProfile();
+    const userId = profile?.id;
+    if (!userId) {
+      throw new Error('Unable to resolve Spotify user profile for queue playlist.');
+    }
+
+    let existingPlaylistId = null;
+    let offset = 0;
+    const startTime = Date.now();
+
+    try {
+      while (!existingPlaylistId) {
+        const { body } = await this.spotifyApi.getUserPlaylists(userId, {
+          limit: PLAYLIST_PAGE_LIMIT,
+          offset
+        });
+        const items = body?.items || [];
+
+        const matchingPlaylist = items.find((playlist) => {
+          return playlist?.name === QUEUE_PLAYLIST_NAME && playlist?.owner?.id === userId;
+        });
+
+        if (matchingPlaylist) {
+          existingPlaylistId = matchingPlaylist.id;
+          break;
+        }
+
+        if (!body || typeof body.total !== 'number') {
+          if (items.length < PLAYLIST_PAGE_LIMIT) {
+            break;
+          }
+        } else if (offset + items.length >= body.total) {
+          break;
+        }
+
+        if (items.length === 0) {
+          break;
+        }
+
+        offset += items.length;
+      }
+
+      if (existingPlaylistId) {
+        this.queuePlaylistId = existingPlaylistId;
+        console.info('[spotify] queue_playlist_reused', {
+          playlistId: existingPlaylistId,
+          durationMs: Date.now() - startTime,
+          timestamp: new Date().toISOString()
+        });
+        return existingPlaylistId;
+      }
+
+      const playlistResponse = await this.spotifyApi.createPlaylist(userId, QUEUE_PLAYLIST_NAME, {
+        description: QUEUE_PLAYLIST_DESCRIPTION,
+        public: false,
+        collaborative: false
+      });
+
+      const createdId = playlistResponse?.body?.id;
+      if (!createdId) {
+        throw new Error('Spotify did not return a playlist ID for the created queue.');
+      }
+
+      this.queuePlaylistId = createdId;
+      console.info('[spotify] queue_playlist_created', {
+        playlistId: createdId,
+        durationMs: Date.now() - startTime,
+        timestamp: new Date().toISOString()
+      });
+      return createdId;
+    } catch (error) {
+      console.error('[spotify] queue_playlist_ensure_failed', {
+        message: error?.message,
+        status: error?.statusCode
+      });
+      throw error;
+    }
+  }
+
+  async getQueuePlaylistSnapshot() {
+    const playlistId = await this.ensureQueuePlaylist();
+    const playlistData = await this.spotifyApi.getPlaylist(playlistId, {
+      fields: 'tracks.total'
+    });
+
+    const total = playlistData?.body?.tracks?.total || 0;
+    return { playlistId, total };
+  }
+
+  chunkArray(items, size) {
+    if (!Number.isInteger(size) || size <= 0) {
+      throw new Error('Chunk size must be a positive integer.');
+    }
+
+    const result = [];
+    for (let i = 0; i < items.length; i += size) {
+      result.push(items.slice(i, i + size));
+    }
+    return result;
+  }
+
+  async appendQueueTracks(trackUris = []) {
+    if (!Array.isArray(trackUris)) {
+      throw new Error('Track URIs must be provided as an array.');
+    }
+
+    const uris = trackUris
+      .map((uri) => (typeof uri === 'string' ? uri.trim() : ''))
+      .filter(Boolean);
+
+    const ensuredPlaylistId = await this.ensureQueuePlaylist();
+
+    if (uris.length === 0) {
+      return {
+        playlistId: ensuredPlaylistId,
+        appendedCount: 0,
+        rangeStart: null,
+        rangeLength: 0,
+        snapshotId: null
+      };
+    }
+
+    const { playlistId, total } = await this.getQueuePlaylistSnapshot();
+    const rangeStart = total;
+    let latestSnapshotId = null;
+    const startTime = Date.now();
+
+    try {
+      const batches = this.chunkArray(uris, 100);
+      for (const batch of batches) {
+        const response = await this.spotifyApi.addTracksToPlaylist(playlistId, batch);
+        latestSnapshotId = response?.body?.snapshot_id || latestSnapshotId;
+      }
+
+      console.info('[spotify] queue_tracks_appended', {
+        playlistId,
+        appendedCount: uris.length,
+        batches: Math.ceil(uris.length / 100),
+        durationMs: Date.now() - startTime,
+        timestamp: new Date().toISOString()
+      });
+
+      return {
+        playlistId,
+        appendedCount: uris.length,
+        rangeStart,
+        rangeLength: uris.length,
+        snapshotId: latestSnapshotId
+      };
+    } catch (error) {
+      console.error('[spotify] queue_tracks_append_failed', {
+        message: error?.message,
+        status: error?.statusCode
+      });
+      throw error;
+    }
+  }
+
+  async findTrackIndexInPlaylist(playlistId, targetUri) {
+    if (!targetUri) {
+      return null;
+    }
+
+    let offset = 0;
+    const limit = 100;
+
+    while (true) {
+      const { body } = await this.spotifyApi.getPlaylistTracks(playlistId, {
+        offset,
+        limit
+      });
+
+      const items = body?.items || [];
+      for (let index = 0; index < items.length; index += 1) {
+        const trackUri = items[index]?.track?.uri || items[index]?.track?.linked_from?.uri;
+        if (trackUri === targetUri) {
+          return offset + index;
+        }
+      }
+
+      if (items.length < limit) {
+        break;
+      }
+
+      offset += items.length;
+    }
+
+    return null;
+  }
+
+  async getPlaybackContext() {
+    if (!this.isConfigured()) {
+      throw new Error('Spotify credentials are not configured.');
+    }
+
+    const hasToken = await this.ensureAccessToken();
+    if (!hasToken) {
+      throw new Error('Spotify session is not authenticated.');
+    }
+
+    try {
+      const response = await this.spotifyApi.getMyCurrentPlaybackState({
+        additional_types: 'track,episode'
+      });
+      return response?.body || null;
+    } catch (error) {
+      console.error('[spotify] playback_context_failed', {
+        message: error?.message,
+        status: error?.statusCode
+      });
+      throw error;
+    }
+  }
+
+  async moveQueueBlockAfterCurrent({ rangeStart, rangeLength = 1, snapshotId } = {}) {
+    if (!Number.isInteger(rangeStart) || rangeStart < 0) {
+      throw new Error('A valid rangeStart index is required to reorder queue tracks.');
+    }
+
+    if (!Number.isInteger(rangeLength) || rangeLength <= 0) {
+      throw new Error('rangeLength must be a positive integer.');
+    }
+
+    const playlistId = await this.ensureQueuePlaylist();
+    const startTime = Date.now();
+
+    try {
+      const playback = await this.getPlaybackContext();
+      const playlistData = await this.spotifyApi.getPlaylist(playlistId, {
+        fields: 'tracks.total'
+      });
+      const totalTracks = playlistData?.body?.tracks?.total || 0;
+
+      if (rangeStart >= totalTracks) {
+        throw new Error('rangeStart is outside of the queue playlist bounds.');
+      }
+
+      if (rangeStart + rangeLength > totalTracks) {
+        throw new Error('rangeLength exceeds queue playlist size.');
+      }
+
+      const queueUri = `spotify:playlist:${playlistId}`;
+      const contextUri = playback?.context?.uri || '';
+      let currentIndex = null;
+
+      if (contextUri === queueUri) {
+        currentIndex = await this.findTrackIndexInPlaylist(playlistId, playback?.item?.uri);
+      }
+
+      if (currentIndex === null || currentIndex === undefined) {
+        console.warn('[spotify] queue_reorder_context_missing', {
+          playlistId,
+          contextUri
+        });
+        currentIndex = -1;
+      }
+
+      if (rangeStart <= currentIndex && rangeStart + rangeLength > currentIndex) {
+        throw new Error('Cannot move queue block containing the currently playing track.');
+      }
+
+      let insertBefore = currentIndex + 1;
+      if (currentIndex < 0) {
+        insertBefore = 0;
+      } else if (rangeStart < currentIndex) {
+        insertBefore -= rangeLength;
+      }
+
+      if (insertBefore < 0) {
+        insertBefore = 0;
+      }
+
+      if (insertBefore > totalTracks) {
+        insertBefore = totalTracks;
+      }
+
+      const options = { range_length: rangeLength };
+      if (snapshotId) {
+        options.snapshot_id = snapshotId;
+      }
+
+      const reorderResponse = await this.spotifyApi.reorderTracksInPlaylist(
+        playlistId,
+        rangeStart,
+        insertBefore,
+        options
+      );
+
+      const resultingSnapshotId = reorderResponse?.body?.snapshot_id || null;
+
+      console.info('[spotify] queue_reordered_after_current', {
+        playlistId,
+        rangeStart,
+        rangeLength,
+        insertBefore,
+        durationMs: Date.now() - startTime,
+        timestamp: new Date().toISOString()
+      });
+
+      return {
+        playlistId,
+        snapshotId: resultingSnapshotId,
+        rangeStart,
+        rangeLength,
+        insertBefore
+      };
+    } catch (error) {
+      console.error('[spotify] queue_reorder_failed', {
+        message: error?.message,
+        status: error?.statusCode
+      });
+      throw error;
+    }
   }
 
   async searchCatalog(query, { types = SEARCH_TYPES, limit = SEARCH_LIMIT, attempt = 0 } = {}) {

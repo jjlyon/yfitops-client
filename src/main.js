@@ -60,6 +60,45 @@ ipcMain.handle('spotify:getAlbum', async (_event, albumId) => {
   return spotifyService.getAlbum(albumId);
 });
 
+ipcMain.handle('spotify:queueEnsure', async () => {
+  console.info('[ipc] queueEnsure invoked');
+  const playlistId = await spotifyService.ensureQueuePlaylist();
+  console.info('[ipc] queueEnsure completed', { playlistId });
+  return { playlistId };
+});
+
+ipcMain.handle('spotify:queueAppend', async (_event, trackUris) => {
+  console.info('[ipc] queueAppend invoked', {
+    trackCount: Array.isArray(trackUris) ? trackUris.length : 0
+  });
+  const result = await spotifyService.appendQueueTracks(trackUris);
+  console.info('[ipc] queueAppend completed', {
+    playlistId: result.playlistId,
+    appendedCount: result.appendedCount
+  });
+  return result;
+});
+
+ipcMain.handle('spotify:queuePlayNext', async (_event, payload) => {
+  console.info('[ipc] queuePlayNext invoked', payload || {});
+  const result = await spotifyService.moveQueueBlockAfterCurrent(payload || {});
+  console.info('[ipc] queuePlayNext completed', {
+    playlistId: result.playlistId,
+    rangeStart: result.rangeStart,
+    rangeLength: result.rangeLength
+  });
+  return result;
+});
+
+ipcMain.handle('spotify:getPlaybackContext', async () => {
+  console.info('[ipc] getPlaybackContext invoked');
+  const context = await spotifyService.getPlaybackContext();
+  console.info('[ipc] getPlaybackContext completed', {
+    hasContext: Boolean(context)
+  });
+  return context;
+});
+
 app.whenReady().then(() => {
   createWindow();
 
