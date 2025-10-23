@@ -56,9 +56,13 @@ const setupSearch = ({ searchInput, resultsContainer }) => {
       }
 
       state.search.lastCompletedRequest = requestId;
+      const albumsExcludingSingles = (results?.albums || []).filter(
+        (album) => album?.album_type !== 'single'
+      );
+
       state.search.results = {
         tracks: results?.tracks || [],
-        albums: results?.albums || []
+        albums: albumsExcludingSingles
       };
       state.search.activeTab = 'tracks';
       toggleLoading(false);
