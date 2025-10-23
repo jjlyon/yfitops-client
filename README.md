@@ -22,6 +22,18 @@ tracks and releases.
    export SPOTIFY_REDIRECT_URI=http://localhost:4350/callback
    ```
 
+   The authentication flow now requests playlist management and playback state scopes so the app can create or reorder the
+   queue playlist and inspect the active player. Make sure your Spotify app settings and consent screen account for the
+   following permissions:
+
+   - `playlist-read-private`
+   - `playlist-modify-private`
+   - `playlist-modify-public`
+   - `user-read-playback-state`
+
+   If you previously authorized the app, revoke the old session in your [Spotify account apps page](https://www.spotify.com/account/apps/)
+   so that Spotify prompts you to grant the expanded scope set during the next login.
+
 3. Run the development build:
 
    ```bash
