@@ -2,7 +2,16 @@ const { BrowserWindow } = require('electron');
 const { randomBytes } = require('crypto');
 const SpotifyWebApi = require('spotify-web-api-node');
 
-const DEFAULT_SCOPES = ['user-read-email', 'user-read-private'];
+// Request playlist management and playback state scopes so the client can maintain
+// its queue playlist and inspect the active player context.
+const DEFAULT_SCOPES = [
+  'user-read-email',
+  'user-read-private',
+  'playlist-read-private',
+  'playlist-modify-private',
+  'playlist-modify-public',
+  'user-read-playback-state'
+];
 const SEARCH_TYPES = ['track', 'album'];
 const SEARCH_LIMIT = 15;
 
@@ -140,7 +149,8 @@ class SpotifyService {
           this.storeToken({
             access_token: body.access_token,
             refresh_token: body.refresh_token,
-            expires_in: body.expires_in
+            expires_in: body.expires_in,
+            scope: body.scope
           });
 
           const profile = await this.getCurrentUserProfile();
@@ -185,11 +195,16 @@ class SpotifyService {
 
     const refreshToken = token.refresh_token || this.tokenInfo?.refreshToken || null;
     const expiresInMs = typeof token.expires_in === 'number' ? token.expires_in * 1000 : 3600 * 1000;
+    const scopeSource = typeof token.scope === 'string' ? token.scope : this.tokenInfo?.scope?.join(' ');
+    const scopeList = scopeSource
+      ? Array.from(new Set(scopeSource.split(/\s+/).filter(Boolean)))
+      : [...DEFAULT_SCOPES];
 
     this.tokenInfo = {
       accessToken: token.access_token,
       refreshToken,
-      expiresAt: Date.now() + expiresInMs
+      expiresAt: Date.now() + expiresInMs,
+      scope: scopeList
     };
 
     this.spotifyApi.setAccessToken(this.tokenInfo.accessToken);
@@ -210,7 +225,8 @@ class SpotifyService {
     this.storeToken({
       access_token: body.access_token,
       refresh_token: body.refresh_token || this.tokenInfo.refreshToken,
-      expires_in: body.expires_in
+      expires_in: body.expires_in,
+      scope: body.scope
     });
   }
 
