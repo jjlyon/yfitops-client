@@ -275,7 +275,7 @@ class SpotifyService {
 
     try {
       while (!existingPlaylistId) {
-        const { body } = await this.spotifyApi.getUserPlaylists(userId, {
+        const { body } = await this.spotifyApi.getUserPlaylists({
           limit: PLAYLIST_PAGE_LIMIT,
           offset
         });
