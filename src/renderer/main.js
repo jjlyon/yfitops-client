@@ -11,6 +11,7 @@ import {
 } from './views/searchResults.js';
 import { initReleaseView, closeReleaseView } from './views/releaseView.js';
 import { initAuth, updateForProfile, showLoginPrompt, showError } from './auth.js';
+import { initFeedback } from './feedback.js';
 
 const getSpotify = () => window.spotify;
 
@@ -249,6 +250,10 @@ const bootstrap = () => {
   const searchView = document.getElementById('searchView');
   const authView = document.getElementById('authView');
   const releaseView = document.getElementById('releaseView');
+  const toastRegion = document.getElementById('toastRegion');
+  const bannerRegion = document.getElementById('bannerRegion');
+
+  initFeedback({ toastRegion, bannerRegion });
 
   initSearchResults({
     resultsContainer,
