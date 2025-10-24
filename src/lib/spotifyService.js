@@ -336,12 +336,64 @@ class SpotifyService {
 
       if (!createdId && typeof playlistBody?.uri === 'string') {
         const uriParts = playlistBody.uri.split(':');
-        createdId = uriParts[uriParts.length - 1] || null;
+        const lastSegment = uriParts[uriParts.length - 1] || '';
+        createdId = lastSegment.split('?')[0] || null;
       }
 
       if (!createdId && typeof playlistBody?.external_urls?.spotify === 'string') {
         const urlSegments = playlistBody.external_urls.spotify.split('/');
-        createdId = urlSegments[urlSegments.length - 1] || null;
+        const lastSegment = urlSegments[urlSegments.length - 1] || '';
+        createdId = lastSegment.split('?')[0] || null;
+      }
+
+      if (!createdId && typeof playlistBody?.href === 'string') {
+        const hrefSegments = playlistBody.href.split('/');
+        const lastSegment = hrefSegments[hrefSegments.length - 1] || '';
+        createdId = lastSegment.split('?')[0] || null;
+      }
+
+      if (!createdId && typeof playlistResponse?.headers?.location === 'string') {
+        const locationSegments = playlistResponse.headers.location.split('/');
+        const lastSegment = locationSegments[locationSegments.length - 1] || '';
+        createdId = lastSegment.split('?')[0] || null;
+      }
+
+      if (!createdId) {
+        console.warn('[spotify] queue_playlist_id_missing_body', {
+          durationMs: Date.now() - startTime
+        });
+
+        let verificationOffset = 0;
+        while (!createdId) {
+          const { body: verificationBody } = await this.spotifyApi.getUserPlaylists({
+            limit: PLAYLIST_PAGE_LIMIT,
+            offset: verificationOffset
+          });
+          const verificationItems = verificationBody?.items || [];
+
+          const matchingPlaylist = verificationItems.find((playlist) => {
+            return playlist?.name === QUEUE_PLAYLIST_NAME && playlist?.owner?.id === userId;
+          });
+
+          if (matchingPlaylist?.id) {
+            createdId = matchingPlaylist.id;
+            break;
+          }
+
+          if (!verificationBody || typeof verificationBody.total !== 'number') {
+            if (verificationItems.length < PLAYLIST_PAGE_LIMIT) {
+              break;
+            }
+          } else if (verificationOffset + verificationItems.length >= verificationBody.total) {
+            break;
+          }
+
+          if (verificationItems.length === 0) {
+            break;
+          }
+
+          verificationOffset += verificationItems.length;
+        }
       }
 
       if (!createdId) {
