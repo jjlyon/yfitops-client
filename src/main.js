@@ -64,7 +64,10 @@ ipcMain.handle('spotify:queueEnsure', async () => {
   console.info('[ipc] queueEnsure invoked');
   const playlistId = await spotifyService.ensureQueuePlaylist();
   console.info('[ipc] queueEnsure completed', { playlistId });
-  return { playlistId };
+  return {
+    playlistId,
+    playlistUri: playlistId ? `spotify:playlist:${playlistId}` : null
+  };
 });
 
 ipcMain.handle('spotify:queueAppend', async (_event, trackUris) => {

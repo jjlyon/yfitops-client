@@ -34,17 +34,35 @@ const filterUris = (uris = []) => {
 };
 
 const ensureQueuePlaylist = async (spotify) => {
+  if (state.queue.playlistId && state.queue.uri) {
+    return {
+      playlistId: state.queue.playlistId,
+      uri: state.queue.uri
+    };
+  }
+
   if (!spotify?.ensureQueue) {
     throw new Error('Queue management is unavailable in this build.');
   }
 
   const result = await spotify.ensureQueue();
-  const playlistId = result?.playlistId || null;
-  if (!playlistId) {
+
+  let playlistId = result?.playlistId || null;
+  let uri = result?.playlistUri || null;
+
+  if (!playlistId && typeof uri === 'string') {
+    const parts = uri.split(':');
+    playlistId = parts[parts.length - 1] || null;
+  }
+
+  if (!uri && typeof playlistId === 'string') {
+    uri = `spotify:playlist:${playlistId}`;
+  }
+
+  if (!playlistId || !uri) {
     throw new Error('Spotify did not return a queue playlist identifier.');
   }
 
-  const uri = `spotify:playlist:${playlistId}`;
   state.queue.playlistId = playlistId;
   state.queue.uri = uri;
   state.queue.lastSynced = Date.now();

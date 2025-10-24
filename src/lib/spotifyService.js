@@ -331,7 +331,19 @@ class SpotifyService {
         collaborative: false
       });
 
-      const createdId = playlistResponse?.body?.id;
+      const playlistBody = playlistResponse?.body || playlistResponse;
+      let createdId = playlistBody?.id || null;
+
+      if (!createdId && typeof playlistBody?.uri === 'string') {
+        const uriParts = playlistBody.uri.split(':');
+        createdId = uriParts[uriParts.length - 1] || null;
+      }
+
+      if (!createdId && typeof playlistBody?.external_urls?.spotify === 'string') {
+        const urlSegments = playlistBody.external_urls.spotify.split('/');
+        createdId = urlSegments[urlSegments.length - 1] || null;
+      }
+
       if (!createdId) {
         throw new Error('Spotify did not return a playlist ID for the created queue.');
       }
