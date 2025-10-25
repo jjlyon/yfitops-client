@@ -22,5 +22,18 @@ export const state = {
     highlightTrackId: null,
     requestId: 0,
     error: null
+  },
+  queue: {
+    playlistId: null,
+    uri: null,
+    lastSynced: 0
+  },
+  playback: {
+    contextUri: null,
+    lastChecked: 0,
+    queueUri: null,
+    contextMatchesQueue: true,
+    description: null,
+    error: null
   }
 };
