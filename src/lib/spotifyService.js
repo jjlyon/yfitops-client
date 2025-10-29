@@ -294,7 +294,9 @@ class SpotifyService {
         return existingPlaylistId;
       }
 
-      const playlistResponse = await this.spotifyApi.createPlaylist(userId, QUEUE_PLAYLIST_NAME, {
+      // spotify-web-api-node v5 posts playlist creation to /v1/me/playlists, so the
+      // user ID is implicit and must not be passed as a positional argument.
+      const playlistResponse = await this.spotifyApi.createPlaylist(QUEUE_PLAYLIST_NAME, {
         description: QUEUE_PLAYLIST_DESCRIPTION,
         public: false,
         collaborative: false
