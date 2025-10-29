@@ -279,41 +279,10 @@ class SpotifyService {
       throw new Error('Unable to resolve Spotify user profile for queue playlist.');
     }
 
-    let existingPlaylistId = null;
-    let offset = 0;
     const startTime = Date.now();
 
     try {
-      while (!existingPlaylistId) {
-        const { body } = await this.spotifyApi.getUserPlaylists({
-          limit: PLAYLIST_PAGE_LIMIT,
-          offset
-        });
-        const items = body?.items || [];
-
-        const matchingPlaylist = items.find((playlist) => {
-          return playlist?.name === QUEUE_PLAYLIST_NAME && playlist?.owner?.id === userId;
-        });
-
-        if (matchingPlaylist) {
-          existingPlaylistId = matchingPlaylist.id;
-          break;
-        }
-
-        if (!body || typeof body.total !== 'number') {
-          if (items.length < PLAYLIST_PAGE_LIMIT) {
-            break;
-          }
-        } else if (offset + items.length >= body.total) {
-          break;
-        }
-
-        if (items.length === 0) {
-          break;
-        }
-
-        offset += items.length;
-      }
+      const existingPlaylistId = await this.findQueuePlaylistId(userId);
 
       if (existingPlaylistId) {
         this.queuePlaylistId = existingPlaylistId;
@@ -331,68 +300,33 @@ class SpotifyService {
         collaborative: false
       });
 
-      const playlistBody = playlistResponse?.body || playlistResponse;
-      let createdId = playlistBody?.id || null;
-
-      if (!createdId && typeof playlistBody?.uri === 'string') {
-        const uriParts = playlistBody.uri.split(':');
-        const lastSegment = uriParts[uriParts.length - 1] || '';
-        createdId = lastSegment.split('?')[0] || null;
-      }
-
-      if (!createdId && typeof playlistBody?.external_urls?.spotify === 'string') {
-        const urlSegments = playlistBody.external_urls.spotify.split('/');
-        const lastSegment = urlSegments[urlSegments.length - 1] || '';
-        createdId = lastSegment.split('?')[0] || null;
-      }
-
-      if (!createdId && typeof playlistBody?.href === 'string') {
-        const hrefSegments = playlistBody.href.split('/');
-        const lastSegment = hrefSegments[hrefSegments.length - 1] || '';
-        createdId = lastSegment.split('?')[0] || null;
-      }
-
-      if (!createdId && typeof playlistResponse?.headers?.location === 'string') {
-        const locationSegments = playlistResponse.headers.location.split('/');
-        const lastSegment = locationSegments[locationSegments.length - 1] || '';
-        createdId = lastSegment.split('?')[0] || null;
-      }
+      const createdIdFromResponse = this.extractPlaylistIdFromResponse(playlistResponse);
+      let createdId = createdIdFromResponse;
 
       if (!createdId) {
         console.warn('[spotify] queue_playlist_id_missing_body', {
           durationMs: Date.now() - startTime
         });
 
-        let verificationOffset = 0;
-        while (!createdId) {
-          const { body: verificationBody } = await this.spotifyApi.getUserPlaylists({
-            limit: PLAYLIST_PAGE_LIMIT,
-            offset: verificationOffset
+        createdId = await this.findQueuePlaylistId(userId);
+      }
+
+      let propagationAttempts = 0;
+      if (!createdId) {
+        const propagationResult = await this.waitForQueuePlaylist(userId, {
+          maxAttempts: 4,
+          initialDelayMs: 300
+        });
+        createdId = propagationResult?.playlistId || null;
+        propagationAttempts = propagationResult?.attempts || 0;
+
+        if (createdId) {
+          console.info('[spotify] queue_playlist_id_recovered', {
+            playlistId: createdId,
+            attempts: propagationAttempts,
+            totalDelayMs: propagationResult.totalDelayMs,
+            timestamp: new Date().toISOString()
           });
-          const verificationItems = verificationBody?.items || [];
-
-          const matchingPlaylist = verificationItems.find((playlist) => {
-            return playlist?.name === QUEUE_PLAYLIST_NAME && playlist?.owner?.id === userId;
-          });
-
-          if (matchingPlaylist?.id) {
-            createdId = matchingPlaylist.id;
-            break;
-          }
-
-          if (!verificationBody || typeof verificationBody.total !== 'number') {
-            if (verificationItems.length < PLAYLIST_PAGE_LIMIT) {
-              break;
-            }
-          } else if (verificationOffset + verificationItems.length >= verificationBody.total) {
-            break;
-          }
-
-          if (verificationItems.length === 0) {
-            break;
-          }
-
-          verificationOffset += verificationItems.length;
         }
       }
 
@@ -404,6 +338,8 @@ class SpotifyService {
       console.info('[spotify] queue_playlist_created', {
         playlistId: createdId,
         durationMs: Date.now() - startTime,
+        recovered: !createdIdFromResponse,
+        propagationAttempts,
         timestamp: new Date().toISOString()
       });
       return createdId;
@@ -414,6 +350,130 @@ class SpotifyService {
       });
       throw error;
     }
+  }
+
+  extractPlaylistIdFromResponse(playlistResponse) {
+    const playlistBody = playlistResponse?.body || playlistResponse || {};
+
+    if (typeof playlistBody?.id === 'string' && playlistBody.id.trim()) {
+      return playlistBody.id.trim();
+    }
+
+    const candidateStrings = [
+      playlistBody?.uri,
+      playlistBody?.href,
+      playlistBody?.external_urls?.spotify,
+      playlistBody?.tracks?.href,
+      playlistBody?.followers?.href,
+      playlistResponse?.headers?.location
+    ];
+
+    for (const candidate of candidateStrings) {
+      const parsed = this.parsePlaylistIdFromReference(candidate);
+      if (parsed) {
+        return parsed;
+      }
+    }
+
+    return null;
+  }
+
+  parsePlaylistIdFromReference(reference) {
+    if (typeof reference !== 'string') {
+      return null;
+    }
+
+    const trimmed = reference.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const colonMatch = trimmed.match(/playlist:([A-Za-z0-9]+)/i);
+    if (colonMatch && colonMatch[1]) {
+      return colonMatch[1];
+    }
+
+    const pathMatch = trimmed.match(/playlists\/([A-Za-z0-9]+)/i);
+    if (pathMatch && pathMatch[1]) {
+      return pathMatch[1];
+    }
+
+    return null;
+  }
+
+  async findQueuePlaylistId(userId) {
+    let offset = 0;
+
+    while (true) {
+      const { body } = await this.spotifyApi.getUserPlaylists({
+        limit: PLAYLIST_PAGE_LIMIT,
+        offset
+      });
+      const items = body?.items || [];
+
+      const matchingPlaylist = items.find((playlist) => {
+        return playlist?.name === QUEUE_PLAYLIST_NAME && playlist?.owner?.id === userId && typeof playlist?.id === 'string';
+      });
+
+      if (matchingPlaylist?.id) {
+        return matchingPlaylist.id;
+      }
+
+      if (!body || typeof body.total !== 'number') {
+        if (items.length < PLAYLIST_PAGE_LIMIT) {
+          break;
+        }
+      } else if (offset + items.length >= body.total) {
+        break;
+      }
+
+      if (items.length === 0) {
+        break;
+      }
+
+      offset += items.length;
+    }
+
+    return null;
+  }
+
+  async waitForQueuePlaylist(userId, options = {}) {
+    const {
+      maxAttempts = 3,
+      initialDelayMs = 250,
+      backoffFactor = 2
+    } = options;
+
+    let attempts = 0;
+    let delayMs = Math.max(0, initialDelayMs);
+    let totalDelayMs = 0;
+
+    while (attempts < maxAttempts) {
+      if (delayMs > 0) {
+        await this.delay(delayMs);
+        totalDelayMs += delayMs;
+      }
+
+      attempts += 1;
+      const playlistId = await this.findQueuePlaylistId(userId);
+      if (playlistId) {
+        return {
+          playlistId,
+          attempts,
+          totalDelayMs
+        };
+      }
+
+      delayMs = Math.round(delayMs * backoffFactor) || delayMs + 1;
+    }
+
+    return null;
+  }
+
+  delay(durationMs) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, durationMs);
+    });
   }
 
   async getQueuePlaylistSnapshot() {
