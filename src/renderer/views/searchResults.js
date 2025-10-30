@@ -189,15 +189,17 @@ export const closeAllTrackMenus = () => {
     return;
   }
   resultsContainer
-    .querySelectorAll('.track-card')
-    .forEach((card) => {
-      card.classList.remove('queue-options-open');
-      const queueButton = card.querySelector('.queue-button');
+    .querySelectorAll('.track-result')
+    .forEach((trackItem) => {
+      trackItem.classList.remove('queue-options-open');
+      const queueButton = trackItem.querySelector('.queue-button');
       if (queueButton) {
         queueButton.setAttribute('aria-expanded', 'false');
         queueButton.dataset.hoverZone = 'append_queue';
+        queueButton.removeAttribute('data-expanded');
+        queueButton.removeAttribute('data-pointer');
       }
-      const keyboardGroup = card.querySelector('.queue-keyboard-group');
+      const keyboardGroup = trackItem.querySelector('.queue-keyboard-group');
       if (keyboardGroup) {
         keyboardGroup.hidden = true;
       }
@@ -205,6 +207,9 @@ export const closeAllTrackMenus = () => {
 };
 
 const buildTrackCard = (track, index) => {
+  const trackItem = document.createElement('div');
+  trackItem.className = 'track-result';
+
   const card = document.createElement('article');
   card.className = 'result-card track-card';
 
@@ -253,6 +258,38 @@ const buildTrackCard = (track, index) => {
   const queueControl = document.createElement('div');
   queueControl.className = 'queue-control';
 
+  const queueButton = document.createElement('button');
+  queueButton.type = 'button';
+  queueButton.className = 'queue-button';
+  queueButton.setAttribute('aria-label', 'Queue options: play next or add to queue');
+  queueButton.setAttribute('aria-haspopup', 'menu');
+  queueButton.dataset.hoverZone = 'append_queue';
+
+  const queuePeek = document.createElement('span');
+  queuePeek.className = 'queue-peek';
+  queuePeek.setAttribute('aria-hidden', 'true');
+  const queuePeekLabel = document.createElement('span');
+  queuePeekLabel.className = 'queue-peek-label';
+  queuePeekLabel.textContent = 'Queue';
+  queuePeek.appendChild(queuePeekLabel);
+
+  const queueStack = document.createElement('span');
+  queueStack.className = 'queue-stack';
+  queueStack.setAttribute('aria-hidden', 'true');
+
+  ['queue-stack-bar--one', 'queue-stack-bar--two', 'queue-stack-bar--three'].forEach((className) => {
+    const bar = document.createElement('span');
+    bar.className = `queue-stack-bar ${className}`;
+    queueStack.appendChild(bar);
+  });
+
+  const queueStackHighlight = document.createElement('span');
+  queueStackHighlight.className = 'queue-stack-highlight';
+  queueStack.appendChild(queueStackHighlight);
+
+  queueButton.appendChild(queuePeek);
+  queueButton.appendChild(queueStack);
+
   const queueKeyboardGroup = document.createElement('div');
   queueKeyboardGroup.className = 'queue-keyboard-group';
   const keyboardGroupId = `queue-options-${track.id || index}`;
@@ -261,28 +298,26 @@ const buildTrackCard = (track, index) => {
   queueKeyboardGroup.setAttribute('role', 'group');
   queueKeyboardGroup.setAttribute('aria-label', 'Queue actions');
 
-  const queueButton = document.createElement('button');
-  queueButton.type = 'button';
-  queueButton.className = 'queue-button';
-  queueButton.setAttribute('aria-label', 'Queue options: play next or add to queue');
-  queueButton.setAttribute('aria-haspopup', 'menu');
   queueButton.setAttribute('aria-controls', keyboardGroupId);
   queueButton.setAttribute('aria-expanded', 'false');
-  queueButton.dataset.hoverZone = 'append_queue';
 
   let pointerInteraction = false;
 
   const closeKeyboardGroup = () => {
     queueKeyboardGroup.hidden = true;
-    card.classList.remove('queue-options-open');
+    trackItem.classList.remove('queue-options-open');
     queueButton.setAttribute('aria-expanded', 'false');
+    queueButton.removeAttribute('data-expanded');
+    queueButton.removeAttribute('data-pointer');
+    queueButton.dataset.hoverZone = 'append_queue';
   };
 
   const openKeyboardGroup = () => {
     closeAllTrackMenus();
     queueKeyboardGroup.hidden = false;
-    card.classList.add('queue-options-open');
+    trackItem.classList.add('queue-options-open');
     queueButton.setAttribute('aria-expanded', 'true');
+    queueButton.setAttribute('data-expanded', 'true');
   };
 
   const triggerQueueAction = async (action) => {
@@ -315,6 +350,7 @@ const buildTrackCard = (track, index) => {
 
   queueButton.addEventListener('pointerenter', (event) => {
     closeAllTrackMenus();
+    queueButton.setAttribute('data-pointer', 'true');
     updateHoverZone(event);
   });
 
@@ -330,10 +366,12 @@ const buildTrackCard = (track, index) => {
   queueButton.addEventListener('pointerleave', () => {
     pointerInteraction = false;
     queueButton.dataset.hoverZone = 'append_queue';
+    queueButton.removeAttribute('data-pointer');
   });
 
   queueButton.addEventListener('blur', () => {
     pointerInteraction = false;
+    queueButton.removeAttribute('data-pointer');
   });
 
   queueButton.addEventListener('click', async (event) => {
@@ -431,9 +469,10 @@ const buildTrackCard = (track, index) => {
   });
 
   card.appendChild(mainButton);
-  card.appendChild(queueControl);
+  trackItem.appendChild(card);
+  trackItem.appendChild(queueControl);
 
-  return card;
+  return trackItem;
 };
 
 const buildAlbumCard = (album, index) => {
