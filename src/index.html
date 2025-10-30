@@ -327,61 +327,149 @@
         outline-offset: 3px;
       }
 
-      .result-actions {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-      }
-
-      .result-actions button {
-        padding: 0.5rem 1rem;
-        border-radius: 999px;
-        border: none;
-        background: rgba(0, 0, 0, 0.35);
-        color: #ffffff;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-      }
-
       .track-card {
         position: relative;
       }
 
-      .track-card .menu-toggle {
+      .queue-control {
         position: absolute;
-        top: 1rem;
-        right: 1rem;
+        top: 0.75rem;
+        right: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+        z-index: 1;
+      }
+
+      .queue-button {
+        position: relative;
+        width: 3rem;
+        height: 3.75rem;
         border: none;
-        border-radius: 999px;
-        padding: 0.35rem 0.75rem;
-        background: rgba(0, 0, 0, 0.45);
-        color: #ffffff;
-        font-size: 0.75rem;
-        font-weight: 600;
+        border-radius: 1.5rem;
+        background: linear-gradient(
+          to bottom,
+          rgba(30, 215, 96, 0.28) 0%,
+          rgba(30, 215, 96, 0.28) 40%,
+          rgba(30, 215, 96, 0.85) 40%,
+          rgba(30, 215, 96, 0.85) 100%
+        );
+        color: transparent;
         cursor: pointer;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+        transition: transform 160ms ease, box-shadow 160ms ease;
+      }
+
+      .queue-button::before,
+      .queue-button::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1.55rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.92);
+        transition: transform 160ms ease, opacity 160ms ease;
+      }
+
+      .queue-button::before {
+        top: 0.75rem;
+        height: 0.35rem;
         opacity: 0.8;
       }
 
-      .track-card .menu-toggle:focus-visible,
-      .track-card.track-menu-open .menu-toggle {
-        outline: 2px solid rgba(30, 215, 96, 0.9);
-        outline-offset: 2px;
+      .queue-button::after {
+        bottom: 0.75rem;
+        height: 0.55rem;
+        opacity: 0.95;
+      }
+
+      .queue-button:hover,
+      .queue-button[data-hover-zone='append_queue'] {
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+        transform: translateY(-1px);
+      }
+
+      .queue-button[data-hover-zone='play_next'] {
+        background: linear-gradient(
+          to bottom,
+          rgba(30, 215, 96, 0.9) 0%,
+          rgba(30, 215, 96, 0.9) 40%,
+          rgba(30, 215, 96, 0.25) 40%,
+          rgba(30, 215, 96, 0.2) 100%
+        );
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+        transform: translateY(-1px);
+      }
+
+      .queue-button[data-hover-zone='play_next']::before {
         opacity: 1;
+        transform: translate(-50%, -10%) scaleY(1.2);
       }
 
-      .track-card .result-actions {
-        display: none;
+      .queue-button[data-hover-zone='append_queue'] {
+        background: linear-gradient(
+          to bottom,
+          rgba(30, 215, 96, 0.25) 0%,
+          rgba(30, 215, 96, 0.25) 40%,
+          rgba(30, 215, 96, 1) 40%,
+          rgba(30, 215, 96, 1) 100%
+        );
       }
 
-      .track-card.track-menu-open .result-actions {
+      .queue-button[data-hover-zone='append_queue']::after {
+        opacity: 1;
+        transform: translate(-50%, 10%) scaleY(1.1);
+      }
+
+      .queue-button:focus-visible {
+        outline: 2px solid rgba(30, 215, 96, 0.95);
+        outline-offset: 3px;
+      }
+
+      .queue-button[aria-busy='true'] {
+        cursor: progress;
+        opacity: 0.7;
+      }
+
+      .queue-keyboard-group {
         display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        padding: 0.5rem;
+        border-radius: 0.75rem;
+        background: rgba(18, 18, 18, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
       }
 
-      .result-actions button:hover,
-      .result-actions button:focus-visible {
-        background: rgba(30, 215, 96, 0.65);
+      .queue-keyboard-group[hidden] {
+        display: none !important;
+      }
+
+      .queue-keyboard-option {
+        border: none;
+        border-radius: 0.65rem;
+        padding: 0.45rem 0.85rem;
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: left;
+        transition: background 160ms ease, color 160ms ease;
+      }
+
+      .queue-keyboard-option:hover,
+      .queue-keyboard-option:focus-visible {
+        background: rgba(30, 215, 96, 0.85);
         color: #000000;
+      }
+
+      .queue-keyboard-option[aria-busy='true'] {
+        cursor: progress;
+        opacity: 0.7;
       }
 
       .release-view {

@@ -191,10 +191,15 @@ export const closeAllTrackMenus = () => {
   resultsContainer
     .querySelectorAll('.track-card')
     .forEach((card) => {
-      card.classList.remove('track-menu-open');
-      const toggle = card.querySelector('.menu-toggle');
-      if (toggle) {
-        toggle.setAttribute('aria-expanded', 'false');
+      card.classList.remove('queue-options-open');
+      const queueButton = card.querySelector('.queue-button');
+      if (queueButton) {
+        queueButton.setAttribute('aria-expanded', 'false');
+        queueButton.dataset.hoverZone = 'append_queue';
+      }
+      const keyboardGroup = card.querySelector('.queue-keyboard-group');
+      if (keyboardGroup) {
+        keyboardGroup.hidden = true;
       }
     });
 };
@@ -245,33 +250,143 @@ const buildTrackCard = (track, index) => {
   meta.appendChild(textGroup);
   mainButton.appendChild(meta);
 
-  const menuToggle = document.createElement('button');
-  menuToggle.type = 'button';
-  menuToggle.className = 'menu-toggle';
-  menuToggle.textContent = 'Queue';
-  menuToggle.setAttribute('aria-expanded', 'false');
-  menuToggle.addEventListener('click', (event) => {
-    event.stopPropagation();
-    const willOpen = !card.classList.contains('track-menu-open');
+  const queueControl = document.createElement('div');
+  queueControl.className = 'queue-control';
+
+  const queueKeyboardGroup = document.createElement('div');
+  queueKeyboardGroup.className = 'queue-keyboard-group';
+  const keyboardGroupId = `queue-options-${track.id || index}`;
+  queueKeyboardGroup.id = keyboardGroupId;
+  queueKeyboardGroup.hidden = true;
+  queueKeyboardGroup.setAttribute('role', 'group');
+  queueKeyboardGroup.setAttribute('aria-label', 'Queue actions');
+
+  const queueButton = document.createElement('button');
+  queueButton.type = 'button';
+  queueButton.className = 'queue-button';
+  queueButton.setAttribute('aria-label', 'Queue options: play next or add to queue');
+  queueButton.setAttribute('aria-haspopup', 'menu');
+  queueButton.setAttribute('aria-controls', keyboardGroupId);
+  queueButton.setAttribute('aria-expanded', 'false');
+  queueButton.dataset.hoverZone = 'append_queue';
+
+  let pointerInteraction = false;
+
+  const closeKeyboardGroup = () => {
+    queueKeyboardGroup.hidden = true;
+    card.classList.remove('queue-options-open');
+    queueButton.setAttribute('aria-expanded', 'false');
+  };
+
+  const openKeyboardGroup = () => {
     closeAllTrackMenus();
-    if (willOpen) {
-      card.classList.add('track-menu-open');
-      menuToggle.setAttribute('aria-expanded', 'true');
+    queueKeyboardGroup.hidden = false;
+    card.classList.add('queue-options-open');
+    queueButton.setAttribute('aria-expanded', 'true');
+  };
+
+  const triggerQueueAction = async (action) => {
+    closeAllTrackMenus();
+    queueButton.disabled = true;
+    queueButton.setAttribute('aria-busy', 'true');
+    try {
+      await handleTrackQueueAction({ track, action });
+    } finally {
+      queueButton.disabled = false;
+      queueButton.removeAttribute('aria-busy');
+      queueButton.dataset.hoverZone = 'append_queue';
+    }
+  };
+
+  const determineActionFromEvent = (event) => {
+    const rect = queueButton.getBoundingClientRect();
+    if (typeof event.clientY !== 'number') {
+      return 'append_queue';
+    }
+    const relativeY = Math.min(rect.height, Math.max(0, event.clientY - rect.top));
+    const split = rect.height * 0.4;
+    return relativeY <= split ? 'play_next' : 'append_queue';
+  };
+
+  const updateHoverZone = (event) => {
+    const action = determineActionFromEvent(event);
+    queueButton.dataset.hoverZone = action;
+  };
+
+  queueButton.addEventListener('pointerenter', (event) => {
+    closeAllTrackMenus();
+    updateHoverZone(event);
+  });
+
+  queueButton.addEventListener('pointerdown', (event) => {
+    pointerInteraction = true;
+    updateHoverZone(event);
+  });
+
+  queueButton.addEventListener('pointermove', (event) => {
+    updateHoverZone(event);
+  });
+
+  queueButton.addEventListener('pointerleave', () => {
+    pointerInteraction = false;
+    queueButton.dataset.hoverZone = 'append_queue';
+  });
+
+  queueButton.addEventListener('blur', () => {
+    pointerInteraction = false;
+  });
+
+  queueButton.addEventListener('click', async (event) => {
+    event.stopPropagation();
+    if (pointerInteraction || event.pointerType === 'mouse' || event.pointerType === 'pen') {
+      const action = queueButton.dataset.hoverZone === 'play_next' ? 'play_next' : 'append_queue';
+      await triggerQueueAction(action);
+      pointerInteraction = false;
+      return;
+    }
+
+    if (queueKeyboardGroup.hidden) {
+      openKeyboardGroup();
+      const firstButton = queueKeyboardGroup.querySelector('button');
+      if (firstButton) {
+        firstButton.focus();
+      }
+    } else {
+      closeKeyboardGroup();
     }
   });
 
-  const actions = document.createElement('div');
-  actions.className = 'result-actions';
+  queueButton.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (queueKeyboardGroup.hidden) {
+        openKeyboardGroup();
+      }
+      const targetButton = queueKeyboardGroup.querySelector(
+        event.key === 'ArrowUp' ? 'button[data-action="play_next"]' : 'button[data-action="append_queue"]'
+      );
+      if (targetButton) {
+        targetButton.focus();
+      }
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (queueKeyboardGroup.hidden) {
+        openKeyboardGroup();
+        const firstButton = queueKeyboardGroup.querySelector('button');
+        if (firstButton) {
+          firstButton.focus();
+        }
+      } else {
+        closeKeyboardGroup();
+      }
+    }
+  });
 
-  const queueActions = [
-    { label: 'Play', action: 'play_now' },
-    { label: 'Play Next', action: 'play_next' },
-    { label: 'Add to Queue', action: 'append_queue' }
-  ];
-
-  queueActions.forEach(({ label, action }) => {
+  const buildKeyboardButton = ({ label, action }) => {
     const button = document.createElement('button');
     button.type = 'button';
+    button.className = 'queue-keyboard-option';
+    button.dataset.action = action;
     button.textContent = label;
     button.addEventListener('click', async (event) => {
       event.stopPropagation();
@@ -284,14 +399,39 @@ const buildTrackCard = (track, index) => {
       } finally {
         button.disabled = false;
         button.removeAttribute('aria-busy');
+        closeKeyboardGroup();
       }
     });
-    actions.appendChild(button);
+    return button;
+  };
+
+  queueKeyboardGroup.appendChild(
+    buildKeyboardButton({ label: 'Play next', action: 'play_next' })
+  );
+  queueKeyboardGroup.appendChild(
+    buildKeyboardButton({ label: 'Add to queue', action: 'append_queue' })
+  );
+
+  queueControl.appendChild(queueButton);
+  queueControl.appendChild(queueKeyboardGroup);
+
+  queueKeyboardGroup.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeKeyboardGroup();
+      queueButton.focus();
+    }
+  });
+
+  queueControl.addEventListener('focusout', (event) => {
+    if (queueControl.contains(event.relatedTarget)) {
+      return;
+    }
+    closeKeyboardGroup();
   });
 
   card.appendChild(mainButton);
-  card.appendChild(menuToggle);
-  card.appendChild(actions);
+  card.appendChild(queueControl);
 
   return card;
 };
