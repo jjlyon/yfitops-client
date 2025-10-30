@@ -1,10 +1,139 @@
 import { state, tabs } from '../state.js';
 import { createImage, summariseArtists } from '../utils.js';
+import { queueTrack } from '../queue.js';
+import { showToast, showBanner, dismissBanner } from '../feedback.js';
 import { openReleaseView, closeReleaseView } from './releaseView.js';
 
 let resultsContainer = null;
 let searchInput = null;
 let searchSpinner = null;
+
+const CONTEXT_MISMATCH_BANNER_ID = 'context-mismatch';
+
+const openQueuePlaylist = (url) => {
+  if (!url) {
+    return;
+  }
+  window.open(url, '_blank', 'noopener');
+};
+
+const buildSuccessMessage = (result) => {
+  const { entity, mode, uris } = result || {};
+  const count = Array.isArray(uris) ? uris.length : 0;
+
+  if (entity?.type === 'album') {
+    const trackLabel = `${count} track${count === 1 ? '' : 's'} from “${entity.name || 'album'}”`;
+    if (mode === 'append') {
+      return `Added ${trackLabel} to the YFitOps queue.`;
+    }
+    return `${trackLabel} will play next from the YFitOps queue.`;
+  }
+
+  const trackLabel = `“${entity?.name || 'Track'}”`;
+  if (mode === 'append') {
+    return `Added ${trackLabel} to the YFitOps queue.`;
+  }
+  if (mode === 'next') {
+    return `${trackLabel} will play next from the YFitOps queue.`;
+  }
+  if (mode === 'now') {
+    return `${trackLabel} is queued to start after the current track.`;
+  }
+  return 'Added selection to the YFitOps queue.';
+};
+
+const buildToastDescription = (result) => {
+  const parts = [];
+  const playback = result?.playback;
+
+  if (playback?.matchesQueue === false) {
+    const contextName = playback?.description || 'a different source';
+    parts.push(`Spotify is currently playing from ${contextName}.`);
+  } else if (playback?.error) {
+    parts.push('Unable to confirm the active playback context.');
+  }
+
+  if (result?.playlistUrl) {
+    parts.push('Open the queue playlist to review upcoming tracks.');
+  }
+
+  return parts.length ? parts.join(' ') : undefined;
+};
+
+const showQueueSuccessFeedback = (result) => {
+  const message = buildSuccessMessage(result);
+  const description = buildToastDescription(result);
+  const playlistUrl = result?.playlistUrl;
+
+  showToast({
+    message,
+    description,
+    variant: 'success',
+    actionLabel: playlistUrl ? 'Open queue' : undefined,
+    onAction: playlistUrl ? () => openQueuePlaylist(playlistUrl) : undefined
+  });
+};
+
+const handleContextMismatchBanner = (result) => {
+  const playback = result?.playback;
+  if (!playback) {
+    dismissBanner(CONTEXT_MISMATCH_BANNER_ID);
+    return;
+  }
+
+  if (playback.matchesQueue === false) {
+    const playlistUrl = result?.playlistUrl;
+    const contextName = playback.description || 'another source';
+    showBanner({
+      id: CONTEXT_MISMATCH_BANNER_ID,
+      title: 'Playback is in another context',
+      message: `Tracks were added to the YFitOps queue, but Spotify is currently playing from ${contextName}. Switch to the queue playlist so they play next.`,
+      variant: 'warning',
+      actionLabel: playlistUrl ? 'Open queue playlist' : undefined,
+      onAction: playlistUrl ? () => openQueuePlaylist(playlistUrl) : undefined,
+      dismissLabel: 'Dismiss'
+    });
+  } else {
+    dismissBanner(CONTEXT_MISMATCH_BANNER_ID);
+  }
+};
+
+const handleTrackQueueAction = async ({ track, action }) => {
+  const analyticsPayload = {
+    entityType: 'track',
+    action,
+    uri: track?.uri,
+    queryLength: state.search.query.length
+  };
+
+  // eslint-disable-next-line no-console
+  console.info('search_result_clicked', analyticsPayload);
+
+  try {
+    const result = await queueTrack({ track, mode: action, source: 'search_results' });
+    showQueueSuccessFeedback(result);
+    handleContextMismatchBanner(result);
+    // eslint-disable-next-line no-console
+    console.info('queue_action_completed', {
+      ...analyticsPayload,
+      playlistId: result?.playlistId,
+      mode: result?.mode,
+      trackCount: Array.isArray(result?.uris) ? result.uris.length : 0
+    });
+  } catch (error) {
+    const message = error?.message || 'Please try again.';
+    showToast({
+      message: `Couldn't queue “${track?.name || 'track'}”.`,
+      description: message,
+      variant: 'error'
+    });
+    // eslint-disable-next-line no-console
+    console.error('queue_action_failed', {
+      ...analyticsPayload,
+      message
+    });
+  }
+};
 
 export const initSearchResults = ({
   resultsContainer: resultsContainerElement,
@@ -144,16 +273,18 @@ const buildTrackCard = (track, index) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = label;
-    button.addEventListener('click', (event) => {
+    button.addEventListener('click', async (event) => {
       event.stopPropagation();
-      // eslint-disable-next-line no-console
-      console.info('search_result_clicked', {
-        entityType: 'track',
-        action,
-        uri: track.uri,
-        queryLength: state.search.query.length
-      });
       closeAllTrackMenus();
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+
+      try {
+        await handleTrackQueueAction({ track, action });
+      } finally {
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+      }
     });
     actions.appendChild(button);
   });
