@@ -1,14 +1,25 @@
 import { state, tabs } from '../state.js';
-import { createImage, summariseArtists } from '../utils.js';
+import { createImage, summariseArtists, truncateText } from '../utils.js';
 import { queueTrack } from '../queue.js';
-import { showToast, showBanner, dismissBanner } from '../feedback.js';
+import { showToast, dismissToast } from '../feedback.js';
 import { openReleaseView, closeReleaseView } from './releaseView.js';
 
 let resultsContainer = null;
 let searchInput = null;
 let searchSpinner = null;
 
-const CONTEXT_MISMATCH_BANNER_ID = 'context-mismatch';
+const CONTEXT_MISMATCH_TOAST_ID = 'context-mismatch';
+
+const formatTrackSubject = (entity) => {
+  const label = truncateText(entity?.name || 'Track');
+  return label || 'Track';
+};
+
+const formatAlbumSubject = (entity, count) => {
+  const albumName = truncateText(entity?.name || 'Album');
+  const trackLabel = `${count} track${count === 1 ? '' : 's'}`;
+  return `${trackLabel} from ${albumName || 'Album'}`;
+};
 
 const openQueuePlaylist = (url) => {
   if (!url) {
@@ -22,79 +33,70 @@ const buildSuccessMessage = (result) => {
   const count = Array.isArray(uris) ? uris.length : 0;
 
   if (entity?.type === 'album') {
-    const trackLabel = `${count} track${count === 1 ? '' : 's'} from “${entity.name || 'album'}”`;
+    const subject = formatAlbumSubject(entity, count || 1);
     if (mode === 'append') {
-      return `Added ${trackLabel} to the YFitOps queue.`;
+      return `${subject} added to queue`;
     }
-    return `${trackLabel} will play next from the YFitOps queue.`;
+    if (mode === 'next') {
+      return `${subject} playing next`;
+    }
+    if (mode === 'now') {
+      return `${subject} starting after current track`;
+    }
+    return `${subject} added to queue`;
   }
 
-  const trackLabel = `“${entity?.name || 'Track'}”`;
+  const trackLabel = formatTrackSubject(entity);
   if (mode === 'append') {
-    return `Added ${trackLabel} to the YFitOps queue.`;
+    return `${trackLabel} added to queue`;
   }
   if (mode === 'next') {
-    return `${trackLabel} will play next from the YFitOps queue.`;
+    return `${trackLabel} playing next`;
   }
   if (mode === 'now') {
-    return `${trackLabel} is queued to start after the current track.`;
+    return `${trackLabel} starting after current track`;
   }
-  return 'Added selection to the YFitOps queue.';
-};
-
-const buildToastDescription = (result) => {
-  const parts = [];
-  const playback = result?.playback;
-
-  if (playback?.matchesQueue === false) {
-    const contextName = playback?.description || 'a different source';
-    parts.push(`Spotify is currently playing from ${contextName}.`);
-  } else if (playback?.error) {
-    parts.push('Unable to confirm the active playback context.');
-  }
-
-  if (result?.playlistUrl) {
-    parts.push('Open the queue playlist to review upcoming tracks.');
-  }
-
-  return parts.length ? parts.join(' ') : undefined;
+  return 'Selection added to queue';
 };
 
 const showQueueSuccessFeedback = (result) => {
   const message = buildSuccessMessage(result);
-  const description = buildToastDescription(result);
   const playlistUrl = result?.playlistUrl;
 
   showToast({
     message,
-    description,
     variant: 'success',
     actionLabel: playlistUrl ? 'Open queue' : undefined,
     onAction: playlistUrl ? () => openQueuePlaylist(playlistUrl) : undefined
   });
 };
 
-const handleContextMismatchBanner = (result) => {
+const handleContextMismatchToast = (result) => {
   const playback = result?.playback;
   if (!playback) {
-    dismissBanner(CONTEXT_MISMATCH_BANNER_ID);
+    dismissToast(CONTEXT_MISMATCH_TOAST_ID);
     return;
   }
 
   if (playback.matchesQueue === false) {
     const playlistUrl = result?.playlistUrl;
     const contextName = playback.description || 'another source';
-    showBanner({
-      id: CONTEXT_MISMATCH_BANNER_ID,
-      title: 'Playback is in another context',
-      message: `Tracks were added to the YFitOps queue, but Spotify is currently playing from ${contextName}. Switch to the queue playlist so they play next.`,
+    showToast({
+      id: CONTEXT_MISMATCH_TOAST_ID,
+      message: `Playback is in ${contextName}. Switch to the queue to hear these tracks.`,
       variant: 'warning',
-      actionLabel: playlistUrl ? 'Open queue playlist' : undefined,
-      onAction: playlistUrl ? () => openQueuePlaylist(playlistUrl) : undefined,
-      dismissLabel: 'Dismiss'
+      duration: 8000,
+      actionLabel: playlistUrl ? 'Open queue' : undefined,
+      onAction: playlistUrl ? () => openQueuePlaylist(playlistUrl) : undefined
+    });
+  } else if (playback?.error) {
+    showToast({
+      id: CONTEXT_MISMATCH_TOAST_ID,
+      message: 'Unable to confirm the active playback context.',
+      variant: 'warning'
     });
   } else {
-    dismissBanner(CONTEXT_MISMATCH_BANNER_ID);
+    dismissToast(CONTEXT_MISMATCH_TOAST_ID);
   }
 };
 
@@ -112,7 +114,7 @@ const handleTrackQueueAction = async ({ track, action }) => {
   try {
     const result = await queueTrack({ track, mode: action, source: 'search_results' });
     showQueueSuccessFeedback(result);
-    handleContextMismatchBanner(result);
+    handleContextMismatchToast(result);
     // eslint-disable-next-line no-console
     console.info('queue_action_completed', {
       ...analyticsPayload,

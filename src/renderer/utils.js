@@ -1,5 +1,22 @@
 export const summariseArtists = (artists = []) => artists.map((artist) => artist.name).join(', ');
 
+export const truncateText = (value, maxLength = 48) => {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (trimmed.length <= maxLength) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, Math.max(0, maxLength - 1))}…`;
+};
+
 export const createImage = (url, alt) => {
   const img = document.createElement('img');
   img.src = url || 'https://via.placeholder.com/200?text=Spotify';
