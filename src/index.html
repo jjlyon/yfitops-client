@@ -327,61 +327,275 @@
         outline-offset: 3px;
       }
 
-      .result-actions {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-      }
-
-      .result-actions button {
-        padding: 0.5rem 1rem;
-        border-radius: 999px;
-        border: none;
-        background: rgba(0, 0, 0, 0.35);
-        color: #ffffff;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-      }
-
-      .track-card {
+      .track-result {
         position: relative;
+        display: block;
+        min-width: 0;
       }
 
-      .track-card .menu-toggle {
+      .track-result .track-card {
+        position: relative;
+        z-index: 2;
+        overflow: visible;
+        height: 100%;
+      }
+
+      .track-result .queue-control {
         position: absolute;
-        top: 1rem;
-        right: 1rem;
+        top: 50%;
+        right: -3.35rem;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        z-index: 1;
+      }
+
+      .queue-button {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 5.4rem;
+        height: 4.2rem;
         border: none;
-        border-radius: 999px;
-        padding: 0.35rem 0.75rem;
-        background: rgba(0, 0, 0, 0.45);
+        border-radius: 999px 0 0 999px;
+        padding: 0.45rem 0.85rem 0.45rem 1.1rem;
+        background: linear-gradient(140deg, rgba(30, 215, 96, 0.35), rgba(30, 215, 96, 0.2));
         color: #ffffff;
-        font-size: 0.75rem;
-        font-weight: 600;
         cursor: pointer;
+        transform: translateX(-3rem);
+        box-shadow: -10px 12px 26px rgba(0, 0, 0, 0.5);
+        transition: transform 260ms cubic-bezier(0.21, 0.72, 0.26, 1), box-shadow 260ms ease, background 220ms ease, opacity 160ms ease;
+        z-index: 1;
+        --highlight-top: 72%;
+      }
+
+      .queue-button::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle at 20% 50%, rgba(30, 215, 96, 0.65), transparent 60%);
+        opacity: 0;
+        transition: opacity 200ms ease;
+        pointer-events: none;
+      }
+
+      .queue-button:focus-visible {
+        outline: 2px solid rgba(30, 215, 96, 0.95);
+        outline-offset: 4px;
+      }
+
+      .queue-button[aria-busy='true'] {
+        cursor: progress;
+        opacity: 0.7;
+      }
+
+      .queue-button[data-hover-zone='play_next'] {
+        --highlight-top: 24%;
+        background: linear-gradient(150deg, rgba(30, 215, 96, 0.55), rgba(30, 215, 96, 0.18));
+      }
+
+      .queue-button[data-hover-zone='append_queue'] {
+        --highlight-top: 72%;
+        background: linear-gradient(150deg, rgba(30, 215, 96, 0.22), rgba(30, 215, 96, 0.85));
+      }
+
+      .queue-button:is(:hover, :focus-visible, [data-pointer='true'], [data-expanded='true']) {
+        transform: translateX(0);
+        box-shadow: -14px 16px 34px rgba(0, 0, 0, 0.6);
+        z-index: 3;
+      }
+
+      .queue-button:is(:hover, :focus-visible, [data-pointer='true'], [data-expanded='true'])::before {
         opacity: 0.8;
       }
 
-      .track-card .menu-toggle:focus-visible,
-      .track-card.track-menu-open .menu-toggle {
-        outline: 2px solid rgba(30, 215, 96, 0.9);
-        outline-offset: 2px;
+      .queue-peek {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.6rem;
+        height: 100%;
+        border-radius: 999px;
+        background: rgba(12, 12, 12, 0.7);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+        transition: background 200ms ease, box-shadow 200ms ease;
+      }
+
+      .queue-peek::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, rgba(30, 215, 96, 0.35), transparent 70%);
+        opacity: 0;
+        transition: opacity 200ms ease;
+      }
+
+      .queue-peek-label {
+        font-size: 0.55rem;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        transform: rotate(90deg);
+        display: inline-block;
+        opacity: 0.65;
+        transition: transform 240ms ease, opacity 200ms ease;
+        white-space: nowrap;
+      }
+
+      .queue-button:is(:hover, :focus-visible, [data-pointer='true'], [data-expanded='true']) .queue-peek {
+        background: rgba(12, 12, 12, 0.9);
+        box-shadow: inset 0 0 0 1px rgba(30, 215, 96, 0.4);
+      }
+
+      .queue-button:is(:hover, :focus-visible, [data-pointer='true'], [data-expanded='true']) .queue-peek::after {
         opacity: 1;
       }
 
-      .track-card .result-actions {
-        display: none;
+      .queue-button:is(:hover, :focus-visible, [data-pointer='true'], [data-expanded='true']) .queue-peek-label {
+        transform: rotate(0deg);
+        opacity: 1;
       }
 
-      .track-card.track-menu-open .result-actions {
+      .queue-stack {
+        position: relative;
         display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 0.45rem;
+        width: 2.85rem;
+        height: 100%;
+        opacity: 0;
+        transform: translateX(-0.85rem) scale(0.9);
+        transition: opacity 240ms ease, transform 260ms cubic-bezier(0.16, 0.8, 0.32, 1);
       }
 
-      .result-actions button:hover,
-      .result-actions button:focus-visible {
-        background: rgba(30, 215, 96, 0.65);
+      .queue-button:is(:hover, :focus-visible, [data-pointer='true'], [data-expanded='true']) .queue-stack {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+
+      .queue-stack-bar {
+        display: block;
+        height: 0.38rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.18);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        transition: width 220ms ease, background 220ms ease, opacity 220ms ease, transform 220ms ease;
+      }
+
+      .queue-stack-bar--one {
+        width: 55%;
+      }
+
+      .queue-stack-bar--two {
+        width: 72%;
+      }
+
+      .queue-stack-bar--three {
+        width: 48%;
+      }
+
+      .queue-button:is(:hover, :focus-visible, [data-pointer='true'], [data-expanded='true']) .queue-stack-bar--one {
+        width: 88%;
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .queue-button:is(:hover, :focus-visible, [data-pointer='true'], [data-expanded='true']) .queue-stack-bar--two {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.38);
+        transform: scaleY(1.1);
+      }
+
+      .queue-button:is(:hover, :focus-visible, [data-pointer='true'], [data-expanded='true']) .queue-stack-bar--three {
+        width: 74%;
+        background: rgba(255, 255, 255, 0.26);
+      }
+
+      .queue-stack-highlight {
+        position: absolute;
+        left: 0.35rem;
+        right: 0.35rem;
+        height: 0.62rem;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(30, 215, 96, 1), rgba(50, 255, 160, 0.9));
+        box-shadow: 0 12px 30px rgba(30, 215, 96, 0.35);
+        top: var(--highlight-top, 72%);
+        transform: translateY(-50%);
+        opacity: 0;
+        transition: top 240ms ease, opacity 200ms ease, box-shadow 240ms ease;
+      }
+
+      .queue-button:is(:hover, :focus-visible, [data-pointer='true'], [data-expanded='true']) .queue-stack-highlight {
+        opacity: 1;
+        box-shadow: 0 18px 36px rgba(30, 215, 96, 0.45);
+      }
+
+      .queue-button[data-hover-zone='play_next'] .queue-stack-highlight {
+        box-shadow: 0 18px 38px rgba(30, 215, 96, 0.5);
+      }
+
+      .queue-button[data-hover-zone='append_queue'] .queue-stack-highlight {
+        box-shadow: 0 14px 32px rgba(30, 215, 96, 0.42);
+      }
+
+      .queue-keyboard-group {
+        position: absolute;
+        top: 50%;
+        right: calc(100% + 0.75rem);
+        transform: translateY(-50%) scale(0.92);
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        padding: 0.55rem;
+        border-radius: 0.85rem;
+        background: rgba(18, 18, 18, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.65);
+        opacity: 0;
+        transform-origin: center right;
+        transition: opacity 180ms ease, transform 220ms ease;
+        z-index: 4;
+      }
+
+      .track-result.queue-options-open .queue-keyboard-group {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+      }
+
+      .queue-keyboard-group[hidden] {
+        display: none !important;
+      }
+
+      .queue-keyboard-option {
+        border: none;
+        border-radius: 0.7rem;
+        padding: 0.5rem 0.95rem;
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: left;
+        transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+      }
+
+      .queue-keyboard-option:hover,
+      .queue-keyboard-option:focus-visible {
+        background: rgba(30, 215, 96, 0.9);
         color: #000000;
+        transform: translateX(-2px);
+      }
+
+      .queue-keyboard-option[aria-busy='true'] {
+        cursor: progress;
+        opacity: 0.7;
       }
 
       .release-view {
