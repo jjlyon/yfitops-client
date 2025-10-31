@@ -291,8 +291,8 @@ const buildTrackCard = (track, index) => {
   queueStackHighlight.className = 'queue-stack-highlight';
   queueStack.appendChild(queueStackHighlight);
 
-  queueButton.appendChild(queueStack);
   queueButton.appendChild(queuePeek);
+  queueButton.appendChild(queueStack);
 
   const queueKeyboardGroup = document.createElement('div');
   queueKeyboardGroup.className = 'queue-keyboard-group';
