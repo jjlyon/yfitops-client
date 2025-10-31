@@ -268,10 +268,14 @@ const buildTrackCard = (track, index) => {
   const queuePeek = document.createElement('span');
   queuePeek.className = 'queue-peek';
   queuePeek.setAttribute('aria-hidden', 'true');
-  const queuePeekLabel = document.createElement('span');
-  queuePeekLabel.className = 'queue-peek-label';
-  queuePeekLabel.textContent = 'Queue';
-  queuePeek.appendChild(queuePeekLabel);
+  const queuePeekIcon = document.createElement('span');
+  queuePeekIcon.className = 'queue-peek-icon';
+  ['queue-peek-bar--one', 'queue-peek-bar--two', 'queue-peek-bar--three'].forEach((className) => {
+    const bar = document.createElement('span');
+    bar.className = `queue-peek-bar ${className}`;
+    queuePeekIcon.appendChild(bar);
+  });
+  queuePeek.appendChild(queuePeekIcon);
 
   const queueStack = document.createElement('span');
   queueStack.className = 'queue-stack';
