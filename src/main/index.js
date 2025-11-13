@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -103,7 +104,25 @@ const resolvePreloadPath = () => {
 };
 
 const resolveRendererHtmlPath = () => {
-  return path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}.html`);
+  const configuredName = (MAIN_WINDOW_VITE_NAME || '').trim();
+
+  if (configuredName && path.isAbsolute(configuredName)) {
+    if (!existsSync(configuredName)) {
+      throw new Error(`Renderer HTML not found at ${configuredName}`);
+    }
+
+    return configuredName;
+  }
+
+  const baseName = configuredName || 'index';
+  const fileName = path.extname(baseName) ? baseName : `${baseName}.html`;
+  const resolvedPath = path.join(__dirname, '../renderer', fileName);
+
+  if (!existsSync(resolvedPath)) {
+    throw new Error(`Renderer HTML not found at ${resolvedPath}`);
+  }
+
+  return resolvedPath;
 };
 
 export const createMainWindow = () => {
