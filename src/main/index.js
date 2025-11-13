@@ -1,4 +1,3 @@
-import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -104,36 +103,43 @@ const resolvePreloadPath = () => {
 };
 
 const resolveRendererHtmlPath = () => {
-  const configuredName = (MAIN_WINDOW_VITE_NAME || '').trim();
-  const candidatePaths = new Set();
+  const configuredName = (MAIN_WINDOW_VITE_NAME || 'index').trim();
 
-  if (configuredName) {
-    if (path.isAbsolute(configuredName)) {
-      candidatePaths.add(configuredName);
-    } else {
-      const candidateNames = path.extname(configuredName)
-        ? [configuredName]
-        : [configuredName, `${configuredName}.html`];
-
-      for (const name of candidateNames) {
-        candidatePaths.add(path.resolve(__dirname, name));
-        candidatePaths.add(path.resolve(__dirname, '..', name));
-        candidatePaths.add(path.resolve(__dirname, '../renderer', name));
-      }
-    }
+  if (!configuredName) {
+    return path.join(__dirname, '../renderer/index.html');
   }
 
-  candidatePaths.add(path.resolve(__dirname, '../renderer/index.html'));
-
-  for (const candidate of candidatePaths) {
-    if (existsSync(candidate)) {
-      return candidate;
-    }
+  if (path.isAbsolute(configuredName)) {
+    return configuredName;
   }
 
-  throw new Error(
-    `Renderer HTML not found. Checked paths: ${Array.from(candidatePaths).join(', ')}`
-  );
+  const htmlName = path.extname(configuredName)
+    ? configuredName
+    : `${configuredName}.html`;
+
+  if (htmlName.includes('/') || htmlName.includes(path.sep)) {
+    return path.join(__dirname, '../', htmlName);
+  }
+
+  return path.join(__dirname, '../renderer', htmlName);
+};
+
+const loadMainWindowContent = async (mainWindow) => {
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    return;
+  }
+
+  const htmlPath = resolveRendererHtmlPath();
+  try {
+    await mainWindow.loadFile(htmlPath);
+  } catch (error) {
+    throw new Error(
+      `Failed to load renderer at ${htmlPath}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
 };
 
 export const createMainWindow = () => {
@@ -150,11 +156,7 @@ export const createMainWindow = () => {
     }
   });
 
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  } else {
-    mainWindow.loadFile(resolveRendererHtmlPath());
-  }
+  void loadMainWindowContent(mainWindow).catch(handleFatalStartupError);
 
   if (isDev) {
     mainWindow.webContents.openDevTools({ mode: 'detach' });
