@@ -4,17 +4,21 @@ const vue = require('@vitejs/plugin-vue');
 
 module.exports = defineConfig({
   main: {
-    entry: 'src/main/index.js'
+    build: {
+      outDir: resolve(__dirname, 'dist-electron/main'),
+      emptyOutDir: true
+    }
   },
   preload: {
-    input: {
-      index: resolve(__dirname, 'src/preload/index.js')
+    build: {
+      outDir: resolve(__dirname, 'dist-electron/preload'),
+      emptyOutDir: true
     }
   },
   renderer: {
     root: resolve(__dirname, 'src/renderer'),
     build: {
-      outDir: resolve(__dirname, 'dist/renderer'),
+      outDir: resolve(__dirname, 'dist-electron/renderer'),
       emptyOutDir: true
     },
     resolve: {
