@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import dotenv from 'dotenv';
@@ -102,26 +103,78 @@ const resolvePreloadPath = () => {
   return path.join(__dirname, '../preload/index.js');
 };
 
+const safeGetAppPath = () => {
+  try {
+    return app.getAppPath();
+  } catch (error) {
+    console.warn('[main] Unable to read app path during renderer resolution', error);
+    return undefined;
+  }
+};
+
 const resolveRendererHtmlPath = () => {
   const configuredName = (MAIN_WINDOW_VITE_NAME || 'index').trim();
 
-  if (!configuredName) {
-    return path.join(__dirname, '../renderer/index.html');
+  const checkedPaths = [];
+
+  if (configuredName && path.isAbsolute(configuredName)) {
+    const absoluteHtmlPath = path.resolve(configuredName);
+    checkedPaths.push(absoluteHtmlPath);
+
+    if (existsSync(absoluteHtmlPath)) {
+      return { htmlPath: absoluteHtmlPath, checkedPaths };
+    }
   }
 
-  if (path.isAbsolute(configuredName)) {
-    return configuredName;
-  }
+  const htmlName = configuredName
+    ? path.extname(configuredName)
+      ? configuredName
+      : `${configuredName}.html`
+    : 'index.html';
 
-  const htmlName = path.extname(configuredName)
-    ? configuredName
-    : `${configuredName}.html`;
+  const relativeTargets = new Set();
 
   if (htmlName.includes('/') || htmlName.includes(path.sep)) {
-    return path.join(__dirname, '../', htmlName);
+    relativeTargets.add(htmlName);
+  } else {
+    relativeTargets.add(path.join('renderer', htmlName));
+    relativeTargets.add(htmlName);
   }
 
-  return path.join(__dirname, '../renderer', htmlName);
+  const searchRoots = new Set([
+    path.join(__dirname, '..'),
+    process.cwd(),
+    path.join(process.cwd(), 'dist-electron'),
+    path.join(process.cwd(), 'dist-electron/renderer')
+  ]);
+
+  const appPath = safeGetAppPath();
+
+  if (appPath) {
+    searchRoots.add(appPath);
+    searchRoots.add(path.join(appPath, 'dist-electron'));
+    searchRoots.add(path.join(appPath, 'dist-electron/renderer'));
+  }
+
+  if (process.resourcesPath) {
+    searchRoots.add(process.resourcesPath);
+    searchRoots.add(path.join(process.resourcesPath, 'app'));
+    searchRoots.add(path.join(process.resourcesPath, 'dist-electron'));
+    searchRoots.add(path.join(process.resourcesPath, 'dist-electron/renderer'));
+  }
+
+  for (const root of searchRoots) {
+    for (const target of relativeTargets) {
+      const candidate = path.resolve(root, target);
+      checkedPaths.push(candidate);
+
+      if (existsSync(candidate)) {
+        return { htmlPath: candidate, checkedPaths };
+      }
+    }
+  }
+
+  return { htmlPath: undefined, checkedPaths };
 };
 
 const loadMainWindowContent = async (mainWindow) => {
@@ -130,7 +183,12 @@ const loadMainWindowContent = async (mainWindow) => {
     return;
   }
 
-  const htmlPath = resolveRendererHtmlPath();
+  const { htmlPath, checkedPaths } = resolveRendererHtmlPath();
+
+  if (!htmlPath) {
+    throw new Error(`Renderer HTML not found. Checked paths: ${checkedPaths.join(', ')}`);
+  }
+
   try {
     await mainWindow.loadFile(htmlPath);
   } catch (error) {
