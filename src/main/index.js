@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import dotenv from 'dotenv';
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 
 dotenv.config();
 
@@ -152,17 +152,41 @@ export const createMainWindow = () => {
   return mainWindow;
 };
 
+const handleFatalStartupError = (error) => {
+  console.error('[main] Fatal startup error', error);
+
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (app.isReady()) {
+    dialog.showErrorBox('Yfitops failed to start', message);
+  }
+
+  app.exit(1);
+};
+
+const safelyCreateMainWindow = () => {
+  try {
+    return createMainWindow();
+  } catch (error) {
+    handleFatalStartupError(error);
+    return undefined;
+  }
+};
+
 registerSpotifyIpcHandlers();
 
-app.whenReady().then(() => {
-  createMainWindow();
+app
+  .whenReady()
+  .then(() => {
+    safelyCreateMainWindow();
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow();
-    }
-  });
-});
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        safelyCreateMainWindow();
+      }
+    });
+  })
+  .catch(handleFatalStartupError);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
