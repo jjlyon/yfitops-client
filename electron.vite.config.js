@@ -27,7 +27,15 @@ module.exports = defineConfig({
   preload: {
     build: {
       outDir: resolve(__dirname, 'dist-electron/preload'),
-      emptyOutDir: true
+      emptyOutDir: true,
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/preload/index.js')
+        },
+        output: {
+          entryFileNames: 'index.js'
+        }
+      }
     }
   },
   renderer: {
