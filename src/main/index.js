@@ -1,7 +1,7 @@
 const path = require('path');
 require('dotenv').config();
 const { app, BrowserWindow, ipcMain } = require('electron');
-const { SpotifyService } = require('./lib/spotifyService');
+const { SpotifyService } = require('../lib/spotifyService');
 
 const enableSearch = process.env.ENABLE_SEARCH ? process.env.ENABLE_SEARCH !== 'false' : true;
 
@@ -17,11 +17,20 @@ function createWindow() {
     height: 640,
     backgroundColor: '#191414',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: app.isPackaged
+        ? path.join(__dirname, '../preload/index.js')
+        : path.join(__dirname, '../../src/preload/index.js')
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  if (process.env.ELECTRON_RENDERER_URL) {
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
+  } else {
+    const rendererIndexPath = app.isPackaged
+      ? path.join(__dirname, '../renderer/index.html')
+      : path.join(__dirname, '../../src/renderer/index.html');
+    mainWindow.loadFile(rendererIndexPath);
+  }
 
   if (!app.isPackaged) {
     mainWindow.webContents.openDevTools({ mode: 'detach' });

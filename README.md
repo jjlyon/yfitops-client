@@ -34,15 +34,21 @@ tracks and releases.
    If you previously authorized the app, revoke the old session in your [Spotify account apps page](https://www.spotify.com/account/apps/)
    so that Spotify prompts you to grant the expanded scope set during the next login.
 
-3. Run the development build:
+3. Run the development build (Electron will open once the renderer Vite server is ready):
 
    ```bash
-   npm start
+   npm run dev
    ```
 
-This will launch a desktop window that displays a discovery-focused interface styled with Spotify-inspired colors. If Spotify
-credentials are present, the UI will prompt for login and, once authenticated, unlock global search. The window is configured to
-open the Chromium devtools automatically while running in development mode to assist with future feature work.
+   The production bundle is generated via electron-vite and can be inspected locally with:
+
+   ```bash
+   npm run build
+   ```
+
+This workflow launches a desktop window that displays a discovery-focused interface styled with Spotify-inspired colors. If
+Spotify credentials are present, the UI will prompt for login and, once authenticated, unlock global search. The window is
+configured to open the Chromium devtools automatically while running in development mode to assist with future feature work.
 
 ### Global Search
 
@@ -56,9 +62,9 @@ The search experience can be toggled off by setting `ENABLE_SEARCH=false` in the
 
 ## Project Structure
 
-- `src/main.js` – Electron main process entry point responsible for creating the application window.
-- `src/preload.js` – Exposes a minimal, secure bridge for passing static metadata to the renderer along with Spotify auth helpers.
-- `src/index.html` – Static renderer shell that provides markup/styles and loads the ES module entry point at `src/renderer/main.js`.
+- `src/main/index.js` – Electron main process entry point responsible for creating the application window.
+- `src/preload/index.js` – Exposes a minimal, secure bridge for passing static metadata to the renderer along with Spotify auth helpers.
+- `src/renderer/index.html` – Static renderer shell that provides markup/styles and loads the ES module entry point at `src/renderer/main.js`.
 - `src/renderer/state.js` – Shared renderer state store for the authenticated user, search requests, and release view metadata.
 - `src/renderer/auth.js` – Updates the login prompt, tooltip messaging, and toggles between the auth/search sections.
 - `src/renderer/utils.js` – Presentation helpers for formatting metadata and constructing artwork images.
@@ -80,4 +86,4 @@ The renderer now relies on native ES modules so logic is grouped by responsibili
 4. `views/releaseView.js` fetches additional album data through the preload bridge (`window.spotify`) and swaps the results grid for the detailed release panel when a result is opened.
 5. Shared state (current query, profile, release metadata) lives in `state.js`, while `utils.js` houses formatting helpers reused across the views.
 
-Electron loads `src/index.html`, which now simply references `renderer/main.js`; no extra bundling step is required, so the existing `npm start` workflow continues to work unchanged.
+Electron now loads the renderer through electron-vite, so `npm run dev` handles both the Vite dev server and Electron process orchestration. The production build emitted by `npm run build` lands in `dist/` and `dist-electron/` for packaging or manual inspection.

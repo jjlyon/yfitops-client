@@ -2,17 +2,24 @@
   "name": "yfitops-client",
   "version": "0.1.0",
   "description": "Basic Electron shell for future Spotify music player integration.",
-  "main": "src/main.js",
+  "main": "dist-electron/main/index.js",
   "author": "",
   "license": "MIT",
   "scripts": {
-    "start": "electron ."
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview"
   },
   "devDependencies": {
-    "electron": "^29.0.0"
+    "@vitejs/plugin-vue": "^5.0.4",
+    "electron": "^30.0.1",
+    "electron-vite": "^4.0.1",
+    "esbuild": "^0.25.5",
+    "vite": "^5.1.6"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "spotify-web-api-node": "^5.0.2"
+    "spotify-web-api-node": "^5.0.2",
+    "vue": "^3.4.21"
   }
 }

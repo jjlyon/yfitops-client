@@ -1,6 +1,8 @@
 node_modules/
 .DS_Store
 out/
+dist/
+dist-electron/
 
 # Logs
 npm-debug.log*
