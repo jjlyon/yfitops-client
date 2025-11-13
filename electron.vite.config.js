@@ -5,8 +5,23 @@ const vue = require('@vitejs/plugin-vue');
 module.exports = defineConfig({
   main: {
     build: {
-      outDir: resolve(__dirname, 'dist-electron/main'),
-      emptyOutDir: true
+      outDir: resolve(__dirname, 'dist-electron'),
+      emptyOutDir: true,
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/main/index.js'),
+          spotifyService: resolve(__dirname, 'src/lib/spotifyService.js')
+        },
+        output: {
+          entryFileNames: (chunkInfo) => {
+            if (chunkInfo.name === 'index') {
+              return 'main/[name].js';
+            }
+
+            return 'lib/[name].js';
+          }
+        }
+      }
     }
   },
   preload: {
