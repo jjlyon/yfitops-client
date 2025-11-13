@@ -17,14 +17,19 @@ function createWindow() {
     height: 640,
     backgroundColor: '#191414',
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js')
+      preload: app.isPackaged
+        ? path.join(__dirname, '../preload/index.js')
+        : path.join(__dirname, '../../src/preload/index.js')
     }
   });
 
   if (process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+    const rendererIndexPath = app.isPackaged
+      ? path.join(__dirname, '../renderer/index.html')
+      : path.join(__dirname, '../../src/renderer/index.html');
+    mainWindow.loadFile(rendererIndexPath);
   }
 
   if (!app.isPackaged) {
