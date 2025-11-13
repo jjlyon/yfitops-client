@@ -1,15 +1,21 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import dotenv from 'dotenv';
 import { app, BrowserWindow, ipcMain } from 'electron';
-import * as SpotifyModule from '../lib/spotifyService.js';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const { SpotifyService } = SpotifyModule;
+const require = createRequire(import.meta.url);
+const spotifyModule = require('../lib/spotifyService.js');
+const { SpotifyService } = spotifyModule || {};
+
+if (typeof SpotifyService !== 'function') {
+  throw new Error('SpotifyService module failed to load.');
+}
 
 const enableSearch = process.env.ENABLE_SEARCH ? process.env.ENABLE_SEARCH !== 'false' : true;
 
