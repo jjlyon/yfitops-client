@@ -105,24 +105,35 @@ const resolvePreloadPath = () => {
 
 const resolveRendererHtmlPath = () => {
   const configuredName = (MAIN_WINDOW_VITE_NAME || '').trim();
+  const candidatePaths = new Set();
 
-  if (configuredName && path.isAbsolute(configuredName)) {
-    if (!existsSync(configuredName)) {
-      throw new Error(`Renderer HTML not found at ${configuredName}`);
+  if (configuredName) {
+    if (path.isAbsolute(configuredName)) {
+      candidatePaths.add(configuredName);
+    } else {
+      const candidateNames = path.extname(configuredName)
+        ? [configuredName]
+        : [configuredName, `${configuredName}.html`];
+
+      for (const name of candidateNames) {
+        candidatePaths.add(path.resolve(__dirname, name));
+        candidatePaths.add(path.resolve(__dirname, '..', name));
+        candidatePaths.add(path.resolve(__dirname, '../renderer', name));
+      }
     }
-
-    return configuredName;
   }
 
-  const baseName = configuredName || 'index';
-  const fileName = path.extname(baseName) ? baseName : `${baseName}.html`;
-  const resolvedPath = path.join(__dirname, '../renderer', fileName);
+  candidatePaths.add(path.resolve(__dirname, '../renderer/index.html'));
 
-  if (!existsSync(resolvedPath)) {
-    throw new Error(`Renderer HTML not found at ${resolvedPath}`);
+  for (const candidate of candidatePaths) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
   }
 
-  return resolvedPath;
+  throw new Error(
+    `Renderer HTML not found. Checked paths: ${Array.from(candidatePaths).join(', ')}`
+  );
 };
 
 export const createMainWindow = () => {
