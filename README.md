@@ -1,8 +1,8 @@
 # YFitOps Client
 
-A bare-bones Electron application that lays the groundwork for a future Spotify-powered music player. The app now includes a
-simple Spotify authentication flow that prompts users to sign in along with a global search workspace for quickly browsing
-tracks and releases.
+A Vue-powered Electron application that lays the groundwork for a future Spotify-powered music player. The renderer hydrates a
+component tree that manages Spotify authentication, global search, release exploration, and toast feedback without relying on
+manual DOM manipulation.
 
 ## Getting Started
 
@@ -51,8 +51,9 @@ tracks and releases.
    Electron pointed at the assets under `dist-electron/` so you can validate the packaged desktop window locally.
 
 This workflow launches a desktop window that displays a discovery-focused interface styled with Spotify-inspired colors. If
-Spotify credentials are present, the UI will prompt for login and, once authenticated, unlock global search. The window is
-configured to open the Chromium devtools automatically while running in development mode to assist with future feature work.
+Spotify credentials are present, the UI will prompt for login and, once authenticated, unlock global search. The renderer now
+uses Vue single-file components, so state changes propagate reactively while the Chromium devtools remain available during
+development for deeper inspection.
 
 ### Global Search
 
@@ -64,30 +65,29 @@ Add to Queue). When no matches are found, the UI communicates the empty state, a
 
 The search experience can be toggled off by setting `ENABLE_SEARCH=false` in the environment before launching the Electron app.
 
+## Manual Verification
+
+Manually verify the renderer after changes to ensure key workflows remain intact:
+
+- Launch the app without credentials to confirm the authentication card displays status messaging and disables search.
+- Log in with Spotify and verify the search input enables, the tooltip updates with keyboard guidance, and the profile loads without console errors.
+- Enter a query and confirm the debounced search spinner, tabbed results, arrow-key navigation, and Escape-to-clear behaviour.
+- Open a release from either tab, ensure the overlay loads track details, the highlighted track is respected, and the back button restores focus to the originating result.
+- Queue a track from the search menu and confirm the toast, banner handling for playback context, and queue playlist action links function.
+
 ## Project Structure
 
 - `src/main/index.js` – Electron main process entry point responsible for creating the application window.
 - `src/preload/index.js` – Exposes a minimal, secure bridge for passing static metadata to the renderer along with Spotify auth helpers.
-- `src/renderer/index.html` – Static renderer shell that provides markup/styles and loads the ES module entry point at `src/renderer/main.js`.
-- `src/renderer/state.js` – Shared renderer state store for the authenticated user, search requests, and release view metadata.
-- `src/renderer/auth.js` – Updates the login prompt, tooltip messaging, and toggles between the auth/search sections.
-- `src/renderer/utils.js` – Presentation helpers for formatting metadata and constructing artwork images.
-- `src/renderer/views/searchResults.js` – Renders search tabs/results, manages loading/empty/error states, and exposes keyboard helpers for the results grid.
-- `src/renderer/views/releaseView.js` – Controls the dedicated release details panel and fetches expanded album data via the preload bridge.
-- `src/renderer/main.js` – Renderer bootstrap that wires DOM events to the modules above and coordinates calls to the preload-exposed Spotify API.
-- `src/lib/spotifyService.js` – Thin wrapper around the Spotify client and OAuth library so the underlying dependencies can be
-  swapped without touching the renderer. Includes catalog search helpers with basic retry handling.
+- `src/renderer/index.html` – Lightweight HTML scaffold with a single `#app` root for Vite hydration.
+- `src/renderer/main.js` – Vue bootstrap that mounts `<App />` and provides preload globals (`spotify`, `appInfo`).
+- `src/renderer/App.vue` – Shell layout containing the navigation, global search workspace, release overlay, and feedback layer.
+- `src/renderer/components/` – Vue single-file components for the authentication gate, search grid, release panel, and toast/banner region.
+- `src/renderer/stores/appStore.js` – Reactive store orchestrating authentication checks, debounced search requests, queue operations, and release lookups.
+- `src/renderer/stores/feedbackStore.js` – Toast and banner manager consumed by the renderer feedback layer.
+- `src/renderer/utils.js` – Presentation helpers for artist summaries, release metadata, and track durations.
+- `src/lib/spotifyService.js` – Thin wrapper around the Spotify client and OAuth library so the underlying dependencies can be swapped without touching the renderer. Includes catalog search helpers with basic retry handling.
 
 Feel free to build on top of this foundation to integrate authentication, playback controls, and other Spotify features.
-
-## Renderer module flow
-
-The renderer now relies on native ES modules so logic is grouped by responsibility under `src/renderer/`:
-
-1. `main.js` waits for `DOMContentLoaded`, captures DOM references, and initialises each module.
-2. `auth.js` toggles between the authentication prompt and the search workspace, delegating to `searchResults.resetSearchState` to reset UI state after login/logout.
-3. `views/searchResults.js` renders search tabs, handles keyboard interactions, and requests release details by calling into `views/releaseView.js`.
-4. `views/releaseView.js` fetches additional album data through the preload bridge (`window.spotify`) and swaps the results grid for the detailed release panel when a result is opened.
-5. Shared state (current query, profile, release metadata) lives in `state.js`, while `utils.js` houses formatting helpers reused across the views.
 
 Electron now loads the renderer through electron-vite, so `npm run dev` handles both the Vite dev server and Electron process orchestration. The production build emitted by `npm run build` lands in `dist-electron/main`, `dist-electron/preload`, and `dist-electron/renderer` for packaging or manual inspection.
