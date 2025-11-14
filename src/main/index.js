@@ -1,7 +1,13 @@
-const path = require('path');
-require('dotenv').config();
-const { app, BrowserWindow, ipcMain } = require('electron');
-const { SpotifyService } = require('../lib/spotifyService');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { SpotifyService } from '../lib/spotifyService.js';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const enableSearch = process.env.ENABLE_SEARCH ? process.env.ENABLE_SEARCH !== 'false' : true;
 
@@ -17,19 +23,14 @@ function createWindow() {
     height: 640,
     backgroundColor: '#191414',
     webPreferences: {
-      preload: app.isPackaged
-        ? path.join(__dirname, '../preload/index.js')
-        : path.join(__dirname, '../../src/preload/index.js')
+      preload: path.join(__dirname, '../preload/index.js')
     }
   });
 
   if (process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
   } else {
-    const rendererIndexPath = app.isPackaged
-      ? path.join(__dirname, '../renderer/index.html')
-      : path.join(__dirname, '../../src/renderer/index.html');
-    mainWindow.loadFile(rendererIndexPath);
+    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
 
   if (!app.isPackaged) {

@@ -1,6 +1,6 @@
-const { BrowserWindow } = require('electron');
-const { randomBytes } = require('crypto');
-const SpotifyWebApi = require('spotify-web-api-node');
+import { BrowserWindow } from 'electron';
+import { randomBytes } from 'crypto';
+import SpotifyWebApi from 'spotify-web-api-node';
 
 // Request playlist management and playback state scopes so the client can maintain
 // its queue playlist and inspect the active player context.
@@ -18,7 +18,7 @@ const QUEUE_PLAYLIST_NAME = 'YFitOps Queue';
 const QUEUE_PLAYLIST_DESCRIPTION = 'Private queue managed by YFitOps.';
 const PLAYLIST_PAGE_LIMIT = 50;
 
-class SpotifyService {
+export class SpotifyService {
   constructor(config = {}) {
     const { clientId, clientSecret, redirectUri } = config;
     this.config = { clientId, clientSecret, redirectUri };
@@ -809,4 +809,3 @@ class SpotifyService {
   }
 }
 
-module.exports = { SpotifyService };
