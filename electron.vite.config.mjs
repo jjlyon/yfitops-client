@@ -1,8 +1,11 @@
-const { resolve } = require('path');
-const { defineConfig } = require('electron-vite');
-const vue = require('@vitejs/plugin-vue');
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'electron-vite';
+import vue from '@vitejs/plugin-vue';
 
-module.exports = defineConfig({
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig({
   main: {
     build: {
       outDir: resolve(__dirname, 'dist-electron'),
