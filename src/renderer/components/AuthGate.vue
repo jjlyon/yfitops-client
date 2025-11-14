@@ -27,7 +27,9 @@ const loggingIn = computed(() => store.state.auth.loggingIn);
 const hasProfile = computed(() => Boolean(store.state.profile));
 
 const showAuthCard = computed(() => authStatus.value !== 'ready' || !hasProfile.value);
-const showLoginButton = computed(() => authStatus.value === 'prompt');
+const showLoginButton = computed(() =>
+  authStatus.value === 'prompt' || authStatus.value === 'error'
+);
 
 const login = () => {
   store.actions.auth.login();
