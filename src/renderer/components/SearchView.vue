@@ -56,53 +56,24 @@
             </div>
           </template>
           <template v-else>
-            <article
+            <SearchResultCard
               v-for="(item, index) in activeItems"
               :key="item.id || `${searchState.activeTab}-${index}`"
-              :class="['result-card', isTracksTab ? 'track-card' : 'album-card', { 'track-menu-open': isMenuOpen(item) }]"
-            >
-              <button
-                type="button"
-                class="result-main"
-                :data-focus-index="index"
-                :ref="(el) => setFocusTarget(el, index)"
-                @click="viewRelease(item, index)"
-                @keydown.arrow-down.prevent="focusItem(index + 1)"
-                @keydown.arrow-up.prevent="focusItem(index - 1)"
-                @keydown.escape.prevent="handleEscape()"
-              >
-                <div class="result-meta">
-                  <img :src="artworkUrl(item)" :alt="`${item.name} cover art`" />
-                  <div class="text-group">
-                    <strong>{{ item.name }}</strong>
-                    <span>{{ summarise(item) }}</span>
-                  </div>
-                </div>
-              </button>
-
-              <template v-if="isTracksTab">
-                <button
-                  type="button"
-                  class="menu-toggle"
-                  :aria-expanded="openMenuId === item.id ? 'true' : 'false'"
-                  @click.stop="toggleMenu(item)"
-                >
-                  Queue
-                </button>
-                <div class="result-actions">
-                  <button
-                    v-for="action in trackActions"
-                    :key="action.mode"
-                    type="button"
-                    @click.stop="queueTrack(item, action.mode)"
-                    :disabled="pendingAction === actionKey(item, action.mode)"
-                    :aria-busy="pendingAction === actionKey(item, action.mode) ? 'true' : 'false'"
-                  >
-                    {{ action.label }}
-                  </button>
-                </div>
-              </template>
-            </article>
+              :ref="(el) => setResultCardRef(el, index)"
+              :item="item"
+              :index="index"
+              :is-track="isTracksTab"
+              :menu-open="isMenuOpen(item)"
+              :pending-action="pendingAction"
+              :track-actions="trackActions"
+              :action-key="actionKey"
+              @view-release="({ item: target, index: cardIndex }) => viewRelease(target, cardIndex)"
+              @focus-next="focusItem"
+              @focus-prev="focusItem"
+              @escape="handleEscape"
+              @toggle-menu="() => toggleMenu(item)"
+              @queue-track="(mode) => queueTrack(item, mode)"
+            />
           </template>
         </div>
       </template>
@@ -112,14 +83,14 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import SearchResultCard from './SearchResultCard.vue';
 import { useAppStore } from '../stores/appStore.js';
-import { summariseArtists } from '../utils.js';
 
 const store = useAppStore();
 const emit = defineEmits(['focus-search']);
 
 const resultsRef = ref(null);
-const focusTargets = ref([]);
+const cardRefs = ref([]);
 const openMenuId = ref(null);
 const pendingAction = ref(null);
 const lastFocusIndex = ref(null);
@@ -156,10 +127,12 @@ const activeTabLabel = computed(() => {
   return tab ? tab.label : 'Results';
 });
 
-const setFocusTarget = (el, index) => {
-  if (el) {
-    focusTargets.value[index] = el;
+const setResultCardRef = (el, index) => {
+  if (!el) {
+    cardRefs.value[index] = null;
+    return;
   }
+  cardRefs.value[index] = el;
 };
 
 const focusItem = (index) => {
@@ -168,9 +141,9 @@ const focusItem = (index) => {
     return;
   }
   nextTick(() => {
-    const target = focusTargets.value[index];
-    if (target) {
-      target.focus();
+    const target = cardRefs.value[index];
+    if (target?.focusMain) {
+      target.focusMain();
     } else {
       emit('focus-search');
     }
@@ -187,7 +160,7 @@ defineExpose({
 });
 
 const resetFocusTargets = () => {
-  focusTargets.value = [];
+  cardRefs.value = [];
   nextTick(() => {
     if (lastFocusIndex.value != null) {
       focusItem(lastFocusIndex.value);
@@ -210,18 +183,6 @@ watch(
     }
   }
 );
-
-const summarise = (item) => {
-  if (Array.isArray(item.artists)) {
-    return summariseArtists(item.artists);
-  }
-  return '';
-};
-
-const artworkUrl = (item) => {
-  const images = item.album?.images || item.images || [];
-  return images[0]?.url || 'https://via.placeholder.com/200?text=Spotify';
-};
 
 const selectTab = (key) => {
   store.actions.search.setActiveTab(key);
@@ -396,121 +357,6 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 0.75rem;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.result-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  position: relative;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.result-card:focus-within,
-.result-card:hover {
-  transform: translateY(-2px);
-  background: rgba(30, 215, 96, 0.15);
-}
-
-.result-card img {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  object-fit: cover;
-}
-
-.result-card .result-meta {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.result-card .text-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.result-card .text-group strong {
-  font-size: 1rem;
-}
-
-.result-card .text-group span {
-  font-size: 0.85rem;
-  opacity: 0.75;
-}
-
-.result-card button.result-main {
-  all: unset;
-  cursor: pointer;
-  display: flex;
-  width: 100%;
-}
-
-.result-card button.result-main:focus-visible {
-  outline: 2px solid rgba(30, 215, 96, 0.9);
-  outline-offset: 3px;
-}
-
-.result-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.result-actions button {
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  border: none;
-  background: rgba(0, 0, 0, 0.35);
-  color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.track-card {
-  position: relative;
-}
-
-.track-card .menu-toggle {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  border: none;
-  border-radius: 999px;
-  padding: 0.35rem 0.75rem;
-  background: rgba(0, 0, 0, 0.45);
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  opacity: 0.8;
-}
-
-.track-card .menu-toggle:focus-visible,
-.track-card.track-menu-open .menu-toggle {
-  outline: 2px solid rgba(30, 215, 96, 0.9);
-  outline-offset: 2px;
-  opacity: 1;
-}
-
-.track-card .result-actions {
-  display: none;
-}
-
-.track-card.track-menu-open .result-actions {
-  display: flex;
-}
-
-.result-actions button:hover,
-.result-actions button:focus-visible {
-  background: rgba(30, 215, 96, 0.65);
-  color: #000000;
 }
 
 @media (max-width: 640px) {
