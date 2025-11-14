@@ -1,12 +1,5 @@
 export const summariseArtists = (artists = []) => artists.map((artist) => artist.name).join(', ');
 
-export const createImage = (url, alt) => {
-  const img = document.createElement('img');
-  img.src = url || 'https://via.placeholder.com/200?text=Spotify';
-  img.alt = alt;
-  return img;
-};
-
 const formatReleaseType = (album) => {
   const type = album?.album_type;
   if (!type) {
