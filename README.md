@@ -46,6 +46,10 @@ tracks and releases.
    npm run build
    ```
 
+   After building, electron-vite outputs the compiled entry points to `dist-electron/main`, `dist-electron/preload`, and
+   `dist-electron/renderer`. Use `npm run preview` to launch the built renderer against Electron without rebuilding—this starts
+   Electron pointed at the assets under `dist-electron/` so you can validate the packaged desktop window locally.
+
 This workflow launches a desktop window that displays a discovery-focused interface styled with Spotify-inspired colors. If
 Spotify credentials are present, the UI will prompt for login and, once authenticated, unlock global search. The window is
 configured to open the Chromium devtools automatically while running in development mode to assist with future feature work.
@@ -86,4 +90,4 @@ The renderer now relies on native ES modules so logic is grouped by responsibili
 4. `views/releaseView.js` fetches additional album data through the preload bridge (`window.spotify`) and swaps the results grid for the detailed release panel when a result is opened.
 5. Shared state (current query, profile, release metadata) lives in `state.js`, while `utils.js` houses formatting helpers reused across the views.
 
-Electron now loads the renderer through electron-vite, so `npm run dev` handles both the Vite dev server and Electron process orchestration. The production build emitted by `npm run build` lands in `dist/` and `dist-electron/` for packaging or manual inspection.
+Electron now loads the renderer through electron-vite, so `npm run dev` handles both the Vite dev server and Electron process orchestration. The production build emitted by `npm run build` lands in `dist-electron/main`, `dist-electron/preload`, and `dist-electron/renderer` for packaging or manual inspection.
