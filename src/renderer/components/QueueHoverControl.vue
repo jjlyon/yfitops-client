@@ -139,8 +139,8 @@ const handleFocusOut = (event) => {
 .queue-control {
   position: absolute;
   top: 50%;
-  right: -0.65rem;
-  transform: translate(95%, -50%);
+  right: 0;
+  transform: translate(-70%, -50%);
   display: flex;
   align-items: center;
   gap: 0.35rem;
@@ -152,11 +152,11 @@ const handleFocusOut = (event) => {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(12, 12, 12, 0.92);
   color: #ffffff;
-  border-radius: 999px;
-  padding: 0.35rem;
+  border-radius: 0.6rem;
+  padding: 0.35rem 0.4rem;
   cursor: pointer;
   display: block;
-  width: 16px;
+  width: 24px;
   height: 78px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
@@ -169,14 +169,14 @@ const handleFocusOut = (event) => {
 }
 
 .queue-control.is-expanded {
-  transform: translate(60%, -50%);
+  transform: translate(45%, -50%);
 }
 
 .queue-control.is-expanded .queue-peek {
   background: linear-gradient(180deg, rgba(16, 16, 16, 0.98), rgba(20, 20, 20, 0.88));
   border-color: rgba(30, 215, 96, 0.32);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-  transform: translateX(-2px);
+  transform: translateX(6px);
 }
 
 .queue-peek:disabled {
@@ -186,18 +186,18 @@ const handleFocusOut = (event) => {
 
 .queue-skeleton {
   position: relative;
-  width: 14px;
+  width: 16px;
   height: 100%;
-  min-height: 48px;
+  min-height: 54px;
   display: grid;
   place-items: center;
 }
 
 .stack-bar {
   position: absolute;
-  width: 14px;
+  width: 16px;
   height: 5px;
-  border-radius: 999px;
+  border-radius: 0.35rem;
   background: rgba(255, 255, 255, 0.8);
   transition: transform 0.16s ease, opacity 0.16s ease;
 }
