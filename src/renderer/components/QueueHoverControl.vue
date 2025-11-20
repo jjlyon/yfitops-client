@@ -18,16 +18,10 @@
       :disabled="isBusy"
       @click.stop="handlePrimaryClick"
     >
-      <div class="queue-peek-shell" aria-hidden="true">
-        <div class="queue-skeleton">
-          <span class="stack-bar top"></span>
-          <span class="stack-bar middle"></span>
-          <span class="stack-bar bottom"></span>
-        </div>
-        <div class="queue-peek-copy">
-          <span class="queue-peek-label">Queue</span>
-          <span class="queue-peek-mode">{{ hoverMode === 'play_next' ? 'Next' : 'Append' }}</span>
-        </div>
+      <div class="queue-skeleton" aria-hidden="true">
+        <span class="stack-bar top"></span>
+        <span class="stack-bar middle"></span>
+        <span class="stack-bar bottom"></span>
       </div>
     </button>
 
@@ -141,31 +135,32 @@ const handleFocusOut = (event) => {
 </script>
 
 <style scoped>
+
 .queue-control {
   position: absolute;
   top: 50%;
-  right: -0.75rem;
-  transform: translate(100%, -50%);
+  right: -0.65rem;
+  transform: translate(95%, -50%);
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   isolation: isolate;
 }
 
 .queue-peek {
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(12, 12, 12, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 12, 12, 0.92);
   color: #ffffff;
   border-radius: 999px;
-  padding: 0.4rem;
+  padding: 0.35rem;
   cursor: pointer;
   display: block;
-  width: 18px;
-  height: 84px;
+  width: 16px;
+  height: 78px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  transition: width 0.22s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.22s ease;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.22s ease;
 }
 
 .queue-peek:focus-visible {
@@ -173,23 +168,15 @@ const handleFocusOut = (event) => {
   outline-offset: 2px;
 }
 
-.queue-peek-shell {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  height: 100%;
-  transition: transform 0.18s ease;
-}
-
-.queue-control.is-expanded .queue-peek-shell {
-  transform: translateX(-2px);
+.queue-control.is-expanded {
+  transform: translate(60%, -50%);
 }
 
 .queue-control.is-expanded .queue-peek {
-  width: 168px;
-  background: linear-gradient(90deg, rgba(16, 16, 16, 0.95), rgba(20, 20, 20, 0.88));
-  border-color: rgba(30, 215, 96, 0.35);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  background: linear-gradient(180deg, rgba(16, 16, 16, 0.98), rgba(20, 20, 20, 0.88));
+  border-color: rgba(30, 215, 96, 0.32);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  transform: translateX(-2px);
 }
 
 .queue-peek:disabled {
@@ -197,26 +184,11 @@ const handleFocusOut = (event) => {
   cursor: progress;
 }
 
-.queue-peek-shell::before {
-  content: '';
-  position: absolute;
-  inset: 6px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 20% 20%, rgba(30, 215, 96, 0.18), transparent 55%),
-    radial-gradient(circle at 80% 80%, rgba(30, 215, 96, 0.16), transparent 55%);
-  opacity: 0;
-  transition: opacity 0.18s ease;
-}
-
-.queue-control.is-expanded .queue-peek-shell::before {
-  opacity: 1;
-}
-
 .queue-skeleton {
   position: relative;
   width: 14px;
   height: 100%;
-  min-height: 54px;
+  min-height: 48px;
   display: grid;
   place-items: center;
 }
@@ -268,41 +240,12 @@ const handleFocusOut = (event) => {
 .queue-control.is-expanded .queue-skeleton::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: 4px;
   border-radius: 0.7rem;
-  background: linear-gradient(180deg, rgba(30, 215, 96, 0.45), rgba(30, 215, 96, 0.18));
-  opacity: 0.8;
+  background: linear-gradient(180deg, rgba(30, 215, 96, 0.32), rgba(30, 215, 96, 0.12));
+  opacity: 0.75;
   filter: blur(8px);
   z-index: -1;
-}
-
-.queue-peek-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  opacity: 0;
-  transform: translateX(12px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  min-width: 0;
-}
-
-.queue-control.is-expanded .queue-peek-copy {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.queue-peek-label {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.queue-peek-mode {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: rgba(30, 215, 96, 0.85);
-  letter-spacing: 0.02em;
 }
 
 .queue-focus-actions {
