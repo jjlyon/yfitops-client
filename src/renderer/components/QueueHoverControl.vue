@@ -140,7 +140,7 @@ const handleFocusOut = (event) => {
   position: absolute;
   top: 50%;
   right: 0;
-  transform: translate(-70%, -50%);
+  transform: translate(10px, -50%);
   display: flex;
   align-items: center;
   gap: 0.35rem;
@@ -152,11 +152,11 @@ const handleFocusOut = (event) => {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(12, 12, 12, 0.92);
   color: #ffffff;
-  border-radius: 0.6rem;
-  padding: 0.35rem 0.4rem;
+  border-radius: 0.35rem;
+  padding: 0.35rem 0.45rem;
   cursor: pointer;
   display: block;
-  width: 24px;
+  width: 52px;
   height: 78px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
@@ -169,14 +169,13 @@ const handleFocusOut = (event) => {
 }
 
 .queue-control.is-expanded {
-  transform: translate(45%, -50%);
+  transform: translate(50px, -50%);
 }
 
 .queue-control.is-expanded .queue-peek {
   background: linear-gradient(180deg, rgba(16, 16, 16, 0.98), rgba(20, 20, 20, 0.88));
   border-color: rgba(30, 215, 96, 0.32);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-  transform: translateX(6px);
 }
 
 .queue-peek:disabled {
