@@ -20,32 +20,19 @@
     </button>
 
     <template v-if="isTrack">
-      <button
-        type="button"
-        class="menu-toggle"
-        :aria-expanded="menuOpen ? 'true' : 'false'"
-        @click.stop="emit('toggle-menu')"
-      >
-        Queue
-      </button>
-      <div class="result-actions">
-        <button
-          v-for="action in trackActions"
-          :key="action.mode"
-          type="button"
-          @click.stop="emit('queue-track', action.mode)"
-          :disabled="isActionPending(action.mode)"
-          :aria-busy="isActionPending(action.mode) ? 'true' : 'false'"
-        >
-          {{ action.label }}
-        </button>
-      </div>
+      <QueueHoverControl
+        :pending-next="pendingNext"
+        :pending-append="pendingAppend"
+        @queue-next="emit('queue-next')"
+        @queue-append="emit('queue-append')"
+      />
     </template>
   </article>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
+import QueueHoverControl from './QueueHoverControl.vue';
 import { summariseArtists } from '../utils.js';
 
 const props = defineProps({
@@ -61,17 +48,9 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  menuOpen: {
-    type: Boolean,
-    default: false
-  },
   pendingAction: {
     type: String,
     default: null
-  },
-  trackActions: {
-    type: Array,
-    default: () => []
   },
   actionKey: {
     type: Function,
@@ -84,16 +63,15 @@ const emit = defineEmits([
   'focus-next',
   'focus-prev',
   'escape',
-  'toggle-menu',
-  'queue-track'
+  'queue-next',
+  'queue-append'
 ]);
 
 const mainButtonRef = ref(null);
 
 const cardClasses = computed(() => [
   'result-card',
-  props.isTrack ? 'track-card' : 'album-card',
-  { 'track-menu-open': props.isTrack && props.menuOpen }
+  props.isTrack ? 'track-card' : 'album-card'
 ]);
 
 const artwork = computed(() => {
@@ -114,6 +92,9 @@ const isActionPending = (mode) => {
   }
   return props.pendingAction === props.actionKey(props.item, mode);
 };
+
+const pendingNext = computed(() => isActionPending('play_next'));
+const pendingAppend = computed(() => isActionPending('append_queue'));
 
 const focusMain = () => {
   mainButtonRef.value?.focus();
@@ -183,60 +164,7 @@ button.result-main:focus-visible {
   outline-offset: 3px;
 }
 
-.result-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.result-actions button {
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  border: none;
-  background: rgba(0, 0, 0, 0.35);
-  color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
 .track-card {
   position: relative;
-}
-
-.track-card .menu-toggle {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  border: none;
-  border-radius: 999px;
-  padding: 0.35rem 0.75rem;
-  background: rgba(0, 0, 0, 0.45);
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  opacity: 0.8;
-}
-
-.track-card .menu-toggle:focus-visible,
-.track-card.track-menu-open .menu-toggle {
-  outline: 2px solid rgba(30, 215, 96, 0.9);
-  outline-offset: 2px;
-  opacity: 1;
-}
-
-.track-card .result-actions {
-  display: none;
-}
-
-.track-card.track-menu-open .result-actions {
-  display: flex;
-}
-
-.result-actions button:hover,
-.result-actions button:focus-visible {
-  background: rgba(30, 215, 96, 0.65);
-  color: #000000;
 }
 </style>

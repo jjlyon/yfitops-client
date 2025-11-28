@@ -4,7 +4,6 @@
     class="results-container"
     role="region"
     aria-label="Search results"
-    @click="handleContainerClick"
   >
     <div v-if="showIdleMessage" class="state-message">
       <strong>Start typing to search the Spotify catalog.</strong>
@@ -63,16 +62,14 @@
               :item="item"
               :index="index"
               :is-track="isTracksTab"
-              :menu-open="isMenuOpen(item)"
               :pending-action="pendingAction"
-              :track-actions="trackActions"
               :action-key="actionKey"
               @view-release="({ item: target, index: cardIndex }) => viewRelease(target, cardIndex)"
               @focus-next="focusItem"
               @focus-prev="focusItem"
               @escape="handleEscape"
-              @toggle-menu="() => toggleMenu(item)"
-              @queue-track="(mode) => queueTrack(item, mode)"
+              @queue-next="() => queueTrack(item, 'play_next')"
+              @queue-append="() => queueTrack(item, 'append_queue')"
             />
           </template>
         </div>
@@ -82,7 +79,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import SearchResultCard from './SearchResultCard.vue';
 import { useAppStore } from '../stores/appStore.js';
 
@@ -91,19 +88,12 @@ const emit = defineEmits(['focus-search']);
 
 const resultsRef = ref(null);
 const cardRefs = ref([]);
-const openMenuId = ref(null);
 const pendingAction = ref(null);
 const lastFocusIndex = ref(null);
 
 const searchState = store.state.search;
 const releaseState = store.state.release;
 const tabs = store.tabs;
-
-const trackActions = [
-  { label: 'Play', mode: 'play_now' },
-  { label: 'Play Next', mode: 'play_next' },
-  { label: 'Add to Queue', mode: 'append_queue' }
-];
 
 const showIdleMessage = computed(
   () => searchState.status === 'idle' && !searchState.query
@@ -206,7 +196,6 @@ const focusNextTab = (index) => {
 
 const viewRelease = (item, index) => {
   lastFocusIndex.value = index;
-  openMenuId.value = null;
   if (searchState.activeTab === 'tracks') {
     store.actions.release.open({
       albumId: item.album?.id,
@@ -235,16 +224,9 @@ const viewRelease = (item, index) => {
   }
 };
 
-const toggleMenu = (item) => {
-  openMenuId.value = openMenuId.value === item.id ? null : item.id;
-};
-
-const isMenuOpen = (item) => openMenuId.value === item.id;
-
 const actionKey = (item, mode) => `${item.id}-${mode}`;
 
 const queueTrack = async (track, mode) => {
-  openMenuId.value = null;
   const key = actionKey(track, mode);
   pendingAction.value = key;
   try {
@@ -259,32 +241,8 @@ const retrySearch = () => {
 };
 
 const handleEscape = () => {
-  openMenuId.value = null;
   emit('focus-search');
 };
-
-const handleContainerClick = (event) => {
-  if (!resultsRef.value) {
-    return;
-  }
-  if (!event.target.closest('.track-card')) {
-    openMenuId.value = null;
-  }
-};
-
-const handleOutsideKey = (event) => {
-  if (event.key === 'Escape') {
-    openMenuId.value = null;
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('keydown', handleOutsideKey);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleOutsideKey);
-});
 </script>
 
 <style scoped>
