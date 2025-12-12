@@ -1,0 +1,30 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+config/name="YFitOps Pinball"
+run/main_scene="res://scenes/Playfield.tscn"
+
+[autoload]
+EventBus="*res://scripts/EventBus.gd"
+
+[input]
+left_flipper={
+"deadzone": 0.5,
+"events": [ { "type": "InputEventKey", "physical_keycode": 65, "keycode": 65, "echo": false, "pressed": false } ]
+}
+right_flipper={
+"deadzone": 0.5,
+"events": [ { "type": "InputEventKey", "physical_keycode": 68, "keycode": 68, "echo": false, "pressed": false } ]
+}
+nudge={
+"deadzone": 0.5,
+"events": [ { "type": "InputEventKey", "physical_keycode": 32, "keycode": 32, "echo": false, "pressed": false } ]
+}
